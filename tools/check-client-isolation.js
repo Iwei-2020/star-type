@@ -12,7 +12,7 @@
  *      若解析结果落在 `miniapp/` 之外（如 `star-type/shared/constants.js`、`star-type/server/**`）→ 阻断。
  *      说明：`../shared/` 本身不是判据 —— `miniapp/core/*` 合法引用 `miniapp/shared/*`，
  *      两者相对路径写法相同，只有解析后的落点能区分，故用路径解析而非字符串匹配。
- *   C. app.json 结构校验（文件存在时）：pages / subPackages 声明的页面必须真实存在。
+ *   C. app.json 结构校验（文件存在时）：pages / subPackages 声明的页面必须真实存在；分包 pages 不得为空。
  *
  * 黑名单用词边界匹配（`\b`），故 `PAIR_CODE_LEN` 不会误命中 `CODE_LEN`、`similarity_pct` 不会误命中 `similarity` ——
  * 前者是生成产物里合法的前端常量，后者是服务端返回的数据字段名，均非「前端重算」。
@@ -181,20 +181,17 @@ function scanSource(entries) {
   return violations;
 }
 
-/** C：app.json 页面存在性。 */
-function checkAppJson() {
+/**
+ * C：app.json 结构校验（纯函数，便于 --selftest 用内存假配置覆盖）。
+ *
+ * 「分包 pages 不得为空」源自抖音 IDE 的**实测**约束——官方文档只写了 `pages` 相对分包根目录，
+ * 未规定下限，但 IDE 编译即报 `app.json ["subPackages"][n]["pages"] can't be empty`。
+ * 该约束与《普通分包 · 引用原则》「packageA 无法使用 packageB 的资源」叠加后，
+ * 使「无页面的资源类分包」**既不可编译、也无法被其它包引用**，故在此固化为门禁拦截，
+ * 避免同类配置再次漏到 IDE 才暴露。
+ */
+function validateAppConfig(config) {
   const problems = [];
-  if (!fs.existsSync(APP_JSON)) {
-    return { problems, skipped: true, summary: 'app.json 尚未落地，跳过页面存在性校验' };
-  }
-
-  let config;
-  try {
-    config = JSON.parse(fs.readFileSync(APP_JSON, 'utf8'));
-  } catch (err) {
-    return { problems: [`app.json 不是合法 JSON：${err.message}`], skipped: false, summary: '' };
-  }
-
   const declared = [];
   const requirePage = (relPage, scopeLabel) => {
     const base = path.join(MINIAPP, relPage);
@@ -221,11 +218,32 @@ function checkAppJson() {
         problems.push(`分包声明结构非法：${JSON.stringify(pkg)}`);
         continue;
       }
+      if (pkg.pages.length === 0) {
+        problems.push(`分包 ${pkg.root} 的 pages 为空：抖音 IDE 拒绝空分包（编译报错）；且分包资源不可被其它包引用，「无页面的资源类分包」不可实现`);
+        continue;
+      }
       for (const page of pkg.pages) requirePage(path.join(pkg.root, page), `分包 ${pkg.root}`);
     }
   }
 
-  return { problems, skipped: false, summary: `主包 ${config.pages ? config.pages.length : 0} 页 / 分包 ${subPackages.length} 个 / 全部页面存在（共 ${declared.length} 页）` };
+  return { problems, summary: `主包 ${config.pages ? config.pages.length : 0} 页 / 分包 ${subPackages.length} 个 / 全部页面存在（共 ${declared.length} 页）` };
+}
+
+/** 读 app.json 并调用 validateAppConfig。 */
+function checkAppJson() {
+  if (!fs.existsSync(APP_JSON)) {
+    return { problems: [], skipped: true, summary: 'app.json 尚未落地，跳过页面存在性校验' };
+  }
+
+  let config;
+  try {
+    config = JSON.parse(fs.readFileSync(APP_JSON, 'utf8'));
+  } catch (err) {
+    return { problems: [`app.json 不是合法 JSON：${err.message}`], skipped: false, summary: '' };
+  }
+
+  const result = validateAppConfig(config);
+  return { problems: result.problems, skipped: false, summary: result.summary };
 }
 
 function report(violations) {
@@ -249,13 +267,24 @@ function main() {
     ];
     const violations = scanSource(fake);
     const kinds = new Set(violations.map((v) => v.kind));
-    const ok = kinds.has('BLACKLIST_IDENTIFIER') && kinds.has('OUT_OF_BOUNDS_REQUIRE') && kinds.has('BLACKLIST_PATTERN');
-    if (!ok) {
-      console.error(`[check-client-isolation] --selftest 失败：三类违规应全部命中，实际命中 ${[...kinds].join(',') || '无'}`);
+    const sourceOk = kinds.has('BLACKLIST_IDENTIFIER') && kinds.has('OUT_OF_BOUNDS_REQUIRE') && kinds.has('BLACKLIST_PATTERN');
+
+    // app.json 负例：沿用真实存在的两个主包页面，只让分包 pages 为空，
+    // 使唯一问题就是「空分包」，不与页面缺失类问题混在一起。
+    const fakeConfig = {
+      pages: ['pages/home/index', 'pages/guide/index'],
+      subPackages: [{ root: 'packageAsset', name: 'asset', pages: [] }],
+    };
+    const configProblems = validateAppConfig(fakeConfig).problems;
+    const emptyPkgHit = configProblems.find((p) => p.includes('pages 为空'));
+
+    if (!sourceOk || !emptyPkgHit) {
+      console.error(`[check-client-isolation] --selftest 失败：应命中三类源违规 + 空分包；实际源违规 ${sourceOk ? '命中' : `未命中（${[...kinds].join(',') || '无'}）`}、空分包 ${emptyPkgHit ? '命中' : '未命中'}`);
       process.exit(1);
     }
-    console.error('[check-client-isolation] --selftest：命中位置如下（证明门禁不是空跑）');
+    console.error('[check-client-isolation] --selftest：源违规命中位置如下（证明门禁不是空跑）');
     report(violations);
+    console.error(`[check-client-isolation] --selftest：app.json 空分包负例已命中 —— ${emptyPkgHit}`);
     console.error('[check-client-isolation] --selftest 结束，按约定返回非 0。');
     process.exit(1);
   }
