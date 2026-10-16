@@ -80,7 +80,30 @@ module.exports = Object.freeze({
       "inputPlaceholder": "8 位字母与数字",
       "inputCta": "确认配对",
       "inputInvalid": "配对码格式不正确，请核对后再试",
-      "inputAmbiguous": "配对码不含 I / L / O / 0 / 1 这几个易混字符"
+      "inputAmbiguous": "配对码不含 I / L / O / 0 / 1 这几个易混字符",
+      "inputNotFound": "没有找到这个邀请，请核对配对码",
+      "dims": Object.freeze({
+        "D1": Object.freeze({
+          "title": "D1 表达",
+          "a": "外显",
+          "b": "内隐"
+        }),
+        "D2": Object.freeze({
+          "title": "D2 能量",
+          "a": "炽放",
+          "b": "静蓄"
+        }),
+        "D3": Object.freeze({
+          "title": "D3 决策",
+          "a": "理性",
+          "b": "感性"
+        }),
+        "D4": Object.freeze({
+          "title": "D4 关系",
+          "a": "主动",
+          "b": "随和"
+        })
+      })
     }),
     "share": Object.freeze({
       "title": "分享给好友",

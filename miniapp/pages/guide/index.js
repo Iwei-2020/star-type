@@ -54,6 +54,13 @@ Page({
   },
 
   onBegin() {
+    // test_start 落点（技术资产 §7）：P-02「开始答题」点击，专属字段为落地来源
+    const tracker = this.app && this.app.globalData ? this.app.globalData.tracker : null;
+    if (tracker && typeof tracker.track === 'function') {
+      const entry = this.app.globalData.entry;
+      tracker.track('test_start', { entry_source: (entry && entry.entrySource) || 'direct' });
+    }
+
     if (typeof tt !== 'undefined' && tt && typeof tt.navigateTo === 'function') {
       tt.navigateTo({ url: '/packageQuiz/pages/quiz/index' });
     }

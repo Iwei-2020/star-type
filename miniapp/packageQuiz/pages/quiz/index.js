@@ -63,6 +63,12 @@ Page({
     return this.app && this.app.globalData ? this.app.globalData.session : null;
   },
 
+  track(name, payload) {
+    const tracker = this.app && this.app.globalData ? this.app.globalData.tracker : null;
+    if (!tracker || typeof tracker.track !== 'function') return false;
+    return tracker.track(name, payload);
+  },
+
   /** 会话游标：上次答题推进到的位置（可恢复到未答的那一题） */
   sessionCursor() {
     const session = this.session();
@@ -72,6 +78,9 @@ Page({
   },
 
   render() {
+    // 本题首次呈现时刻：用于 answer_submit 的 elapsed_ms（本题耗时）
+    this.questionShownAt = Date.now();
+
     const session = this.session();
     const status = session && typeof session.status === 'function' ? session.status() : null;
     const answers = status ? status.answers : {};
@@ -107,6 +116,14 @@ Page({
 
     const questionId = this.ids[this.index];
     if (!session.answer(questionId, optionId)) return;
+
+    // answer_submit 落点（技术资产 §7）：选项点击且作答成功，含本题耗时
+    this.track('answer_submit', {
+      question_id: questionId,
+      option_id: optionId,
+      question_index: this.index,
+      elapsed_ms: Math.max(0, Date.now() - (this.questionShownAt || Date.now())),
+    });
 
     if (this.index >= this.ids.length - 1) {
       if (typeof tt !== 'undefined' && tt && typeof tt.redirectTo === 'function') {

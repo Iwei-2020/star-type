@@ -26,6 +26,7 @@
 const {
   ARCHETYPES,
   ALLOW_SELF_PAIR,
+  DIM_ORDER,
   SESSION_TTL_MS,
   POLL_BACKOFF_MS,
 } = require('../../shared/constants.js');
@@ -89,6 +90,25 @@ function pendingView(record, extra) {
   };
 }
 
+/**
+ * 逐维对照明细（P-05 完成态的 4 条对照带）。
+ *
+ * 只回结构化字段，不回任何面向用户的中文——对外文案集中于文案源，
+ * 前端按 `dim` 取 `ui('pair.dims.<dim>.*')` 渲染维度名与两端名（技术资产 §12）。
+ *
+ * @returns {Array<{dim:string, comp:boolean, a:string, b:string}>}
+ *   dim  = 维度标识，顺序即服务端 DIM_ORDER（前端不得自行推导维度顺序）
+ *   a/b  = 发起者 / 受邀者在该维度的端点（'A' / 'B'）
+ *   comp = 两端是否互补（端点不同；相同即一致）
+ */
+function dimensionRows(initiatorCode, inviteeCode) {
+  return DIM_ORDER.map((dim, index) => {
+    const a = String(initiatorCode || '')[index] || '';
+    const b = String(inviteeCode || '')[index] || '';
+    return { dim, comp: a !== b, a, b };
+  });
+}
+
 /** completed 视图。 */
 function completedView(record, isFirstCompletion) {
   return {
@@ -102,6 +122,7 @@ function completedView(record, isFirstCompletion) {
     similarity_pct: record.similarity_pct,
     similarity_label: formatSimilarityPct(record.similarity_pct),
     band_label: record.band_label,
+    dimensions: dimensionRows(record.initiator_code, record.invitee_code),
     completed_at: record.completed_at,
     ready: true,
     // 仅首次完成时为 true：前端与埋点据此决定是否上报 pair_complete

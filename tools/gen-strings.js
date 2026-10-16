@@ -125,6 +125,16 @@ const UI_TEXT = {
     inputCta: '确认配对',
     inputInvalid: '配对码格式不正确，请核对后再试',
     inputAmbiguous: '配对码不含 I / L / O / 0 / 1 这几个易混字符',
+    // 服务端 ERROR_CODES.PAIR_CODE_NOT_FOUND(2001) 的落地提示（常量表只定义码→语义，不定义逐条提示语）
+    inputNotFound: '没有找到这个邀请，请核对配对码',
+    // 完成态 4 条维度对照带的展示文案（《美术资产》§6.5 版式：维度短名 + A/B 两端名）。
+    // 维度短名取美术稿（「D1 表达」），A/B 端名取 PRD §3.2 维度表；逐维明细由服务端 completedView.dimensions 下发。
+    dims: {
+      D1: { title: 'D1 表达', a: '外显', b: '内隐' },
+      D2: { title: 'D2 能量', a: '炽放', b: '静蓄' },
+      D3: { title: 'D3 决策', a: '理性', b: '感性' },
+      D4: { title: 'D4 关系', a: '主动', b: '随和' },
+    },
   },
   share: {
     title: '分享给好友',
