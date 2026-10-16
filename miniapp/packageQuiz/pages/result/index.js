@@ -361,7 +361,15 @@ Page({
       });
       return;
     }
-    // save_image：需 canvas 合成方形分享卡（美术资产 §5.2），留待分享卡合成阶段
+    if (channel === 'save_image') {
+      // 方形分享卡：配对码随需创建，码补齐后再交弹窗合成（画布在组件内离屏，页面只负责取码）
+      this.ensureInvite().then((code) => {
+        if (this.stopped) return;
+        const popup = this.selectComponent('#sharePopup');
+        if (popup && typeof popup.exportCard === 'function') popup.exportCard(code || '');
+      });
+      return;
+    }
   },
 
   copyText(text) {

@@ -38,5 +38,9 @@
     </view>
 
     <disclaimer scope="share" />
+
+    <!-- 方形分享卡合成画布（离屏）：平台 canvas 的 Image 只认位图，符号与底组为构建期预栅格化的
+         PNG（见 core/share-card.js）。画布尺寸由 share-card.js 按 2× 设定（750 × 750 像素）。 -->
+    <canvas type="2d" id="shareCardCanvas" class="st-popup__canvas"></canvas>
   </view>
 </view>

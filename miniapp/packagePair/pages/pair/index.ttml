@@ -76,6 +76,7 @@
   <disclaimer scope="pair" />
 
   <share-popup
+    id="sharePopup"
     visible="{{shareVisible}}"
     archetypeName="{{shareName}}"
     archetypeCode="{{shareCode}}"

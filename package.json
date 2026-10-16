@@ -17,5 +17,8 @@
     "text": "node tools/export-text.js",
     "text:check": "node tools/check-charset-monotonic.js",
     "verify": "npm test && npm run check && npm run text && npm run text:check"
+  },
+  "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2"
   }
 }

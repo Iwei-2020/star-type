@@ -561,7 +561,12 @@ Page({
       this.shareCard();
       return;
     }
-    // save_image：需 canvas 合成方形分享卡（美术资产 §5.2），留待分享卡合成阶段
+    if (channel === 'save_image') {
+      // 方形分享卡：画布在弹窗组件内离屏，页面把当前配对码交给它合成
+      const popup = this.selectComponent('#sharePopup');
+      if (popup && typeof popup.exportCard === 'function') popup.exportCard(this.data.pairCode);
+      return;
+    }
   },
 
   copyText(text) {

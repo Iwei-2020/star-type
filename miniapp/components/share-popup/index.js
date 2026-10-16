@@ -13,14 +13,20 @@
  *   3. **文案一律经 display.ui('share.*') 读取**（含 4 个渠道标签），组件内不出现硬编码中文
  *      —— 满足《技术资产》§12「全部对外文案集中于单一文案源」。
  *
- * 边界：本组件只做展示与事件抛出（`share` / `close` / `invite` / `retry`），分享渠道的实际拉起
- * 由宿主页面完成 —— 组件内无从得知 `scene` 的合法取值，不在此处编造枚举。
+ * 边界：本组件做展示与事件抛出（`share` / `close` / `invite` / `retry`），并在**自身持有合成画布**的
+ * 前提下负责「保存图片」渠道的落地 —— 方形分享卡的 canvas 就在本组件内，宿主页面无法寻址到它，
+ * 故由宿主页面调 `exportCard(pairCode)` 触发（页面先补齐配对码，再调用；组件不参与云端交互）。
+ * 其余渠道的实际拉起仍由宿主页面完成：组件内无从得知 `scene` 的合法取值，不在此处编造枚举。
  */
 
 const display = require('../../core/display.js');
 const { PAGES } = require('../../core/route.js');
 const assets = require('../../shared/assets.js');
 const { layerStyle } = require('../../core/art.js');
+const shareCard = require('../../core/share-card.js');
+
+/** 方形分享卡合成画布的元素 id（与 index.ttml 一致）。 */
+const SHARE_CANVAS_ID = 'shareCardCanvas';
 
 /**
  * 渠道键 → 图标位（《美术稿-功能图标库》：B-2 抖音好友 / B-3 抖音群 /
@@ -134,6 +140,34 @@ Component({
 
     onRetryTap() {
       this.triggerEvent('retry');
+    },
+
+    /**
+     * 合成方形分享卡并存入相册（宿主页面对 `save_image` 渠道调用；见文件头边界说明）。
+     * 无论成功失败都只做一次弱提示 toast，**不改变弹窗状态**（美术资产 §7.3）。
+     * @param {string} pairCode 最终配对码；宿主页面若有懒创建邀请，须在其 resolve 后再传。
+     */
+    exportCard(pairCode) {
+      if (this.exporting) return;
+      this.exporting = true;
+      const done = (res) => {
+        this.exporting = false;
+        const ok = !!(res && res.ok);
+        if (typeof tt !== 'undefined' && tt && typeof tt.showToast === 'function') {
+          tt.showToast({ title: display.ui(ok ? 'share.saveOk' : 'share.saveFail'), icon: 'none' });
+        }
+        this.triggerEvent('saved', { ok });
+      };
+
+      shareCard
+        .saveToAlbum({
+          host: this,
+          canvasId: SHARE_CANVAS_ID,
+          archetypeCode: this.data.archetypeCode,
+          pairCode: pairCode || this.data.pairCode || '',
+        })
+        .then(done)
+        .catch(() => done(null));
     },
   },
 });

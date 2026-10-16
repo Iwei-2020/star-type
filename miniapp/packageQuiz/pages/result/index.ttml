@@ -68,6 +68,7 @@
   </view>
 
   <share-popup
+    id="sharePopup"
     visible="{{shareVisible}}"
     archetypeName="{{name}}"
     archetypeCode="{{code}}"

@@ -1,7 +1,8 @@
 # 操作系统
 .DS_Store
 
-# 依赖（本工程零运行时依赖，规则预留给后续）
+# 依赖：本工程**无运行时依赖**（小程序包内零依赖）；@resvg/resvg-js 仅用于构建期
+# 把美术稿的 SVG 预栅格化为 PNG 位图（供 canvas 合成方形分享卡），不进小程序包。
 node_modules/
 npm-debug.log*
 

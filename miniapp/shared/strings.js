@@ -110,6 +110,8 @@ module.exports = Object.freeze({
       "subtitle": "邀请 TA 完成测试，一起看同频图谱",
       "ctaInvite": "去邀请配对",
       "ctaRetry": "再测一次",
+      "saveOk": "已保存到相册",
+      "saveFail": "保存失败，请检查相册权限",
       "channels": Object.freeze([
         Object.freeze({
           "key": "friend",

@@ -168,6 +168,17 @@
   font-weight: 600;
 }
 
+/* ── ⑤ 方形分享卡合成画布（离屏） ──────────────────────────── */
+/* 仅作绘制载体，不参与弹窗版式；离屏摆放以保证不遮挡、不可点。
+   像素尺寸由 core/share-card.js 设为 750 × 750（2× 绘制，技术资产 §6）。 */
+.st-popup__canvas {
+  position: fixed;
+  top: -2000rpx;
+  left: -2000rpx;
+  width: 750rpx;
+  height: 750rpx;
+}
+
 .st-popup__action + .st-popup__action {
   margin-left: 20rpx;
 }
