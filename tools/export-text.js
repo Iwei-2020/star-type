@@ -49,10 +49,19 @@ const CATEGORIES = [
   { key: 'asciiPunct', label: 'ASCII 符号与空白', test: (cp) => cp >= 0x20 && cp <= 0x7e },
 ];
 
-/** 递归收集所有字符串值（键名是标识符，不渲染，故不计入）。 */
+/**
+ * 递归收集所有字符串值。
+ *
+ * 三类**不渲染**的内容刻意剔除，否则会把排版符号混进字体子集：
+ *   1. 键名是标识符，不渲染，故不计入（只取「值」）；
+ *   2. 字段名为 `key` 的值是结构标识（如分享渠道键 `friend` / `save_image`），
+ *      渲染的是同级的 `label`，故 `key` 不取源；
+ *   3. 值内的 `{占位符}` 在使用时由 core/display.js 的 fill() 替换（如「第 {n} / {total} 题」），
+ *      渲染结果里不会出现花括号，故占位符整体剥离。
+ */
 function collectStrings(value, sink) {
   if (typeof value === 'string') {
-    sink.push(value);
+    sink.push(value.replace(/\{[^}]*\}/g, ''));
     return;
   }
   if (Array.isArray(value)) {
@@ -60,7 +69,10 @@ function collectStrings(value, sink) {
     return;
   }
   if (value && typeof value === 'object') {
-    for (const key of Object.keys(value)) collectStrings(value[key], sink);
+    for (const key of Object.keys(value)) {
+      if (key === 'key') continue;
+      collectStrings(value[key], sink);
+    }
   }
 }
 

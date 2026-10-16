@@ -1,2 +1,32 @@
-<!-- P-02 测试引导页 · 骨架占位：视觉还原留第二阶段（实施计划 §七） -->
-<view class="st-page">P-02 测试引导页</view>
+<!-- P-02 测试引导页 · 版式与色值见《美术资产-全流程视觉P01-P06线稿说明》§3；字样一律经 core/display.js 取得 -->
+<view class="st-page p2">
+  <view class="p2__head">
+    <text class="p2__title">{{title}}</text>
+    <text class="p2__subtitle">{{subtitle}}</text>
+  </view>
+
+  <view class="p2__steps">
+    <view class="p2__step st-card" tt:for="{{steps}}" tt:key="no">
+      <view class="p2__step-no">
+        <text>{{item.no}}</text>
+      </view>
+      <view class="p2__step-body">
+        <text class="p2__step-title">{{item.title}}</text>
+        <text class="p2__step-desc">{{item.desc}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="p2__note">
+    <text class="st-note">{{note}}</text>
+    <text class="st-note" tt:if="{{canResume}}"> · {{noteResume}}</text>
+  </view>
+
+  <view class="p2__cta">
+    <view class="st-btn st-btn--primary" bindtap="onBegin">{{cta}}</view>
+  </view>
+
+  <view class="p2__foot">
+    <disclaimer scope="guide" />
+  </view>
+</view>

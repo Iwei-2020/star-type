@@ -1,0 +1,75 @@
+/* P-01 首页 · 版式见《美术资产》§2 */
+
+/* 深底渐变 135°（--bg-deep → #3A2A6B）+ 顶部暖光径向（美术资产 §1 色值） */
+page {
+  background-color: #1b1035;
+  background-image:
+    radial-gradient(110% 50% at 50% -8%, rgba(232, 200, 122, 0.18) 0%, rgba(232, 200, 122, 0) 62%),
+    linear-gradient(135deg, #1b1035 0%, #3a2a6b 100%);
+  background-repeat: no-repeat;
+}
+
+/* 通栏纵向排布：主视觉居中，按钮组通栏，免责贴底 */
+.p1 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 96rpx;
+  padding-bottom: 32rpx;
+}
+
+.p1__head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.p1__brand {
+  font-size: 60rpx;
+  font-weight: 600;
+  letter-spacing: 8rpx;
+  color: #f5efe6;
+}
+
+.p1__brandsub {
+  margin-top: 14rpx;
+  font-size: 22rpx;
+  letter-spacing: 10rpx;
+  color: rgba(232, 200, 122, 0.9);
+}
+
+/* 主视觉 328rpx（美术资产 §2.2 ①） */
+.p1__sigil {
+  width: 328rpx;
+  height: 328rpx;
+  margin-top: 56rpx;
+}
+
+.p1__tagline {
+  margin-top: 48rpx;
+  max-width: 560rpx;
+  font-size: 25rpx;
+  line-height: 1.75;
+  text-align: center;
+  color: rgba(245, 239, 230, 0.84);
+}
+
+/* 规格胶囊（美术资产 §2.2 ④） */
+.p1__spec {
+  margin-top: 28rpx;
+  padding: 10rpx 28rpx;
+  border: 2rpx solid rgba(232, 200, 122, 0.32);
+  border-radius: 999rpx;
+}
+
+.p1__cta {
+  width: 100%;
+  margin-top: 64rpx;
+}
+
+/* 免责常驻底部，不折叠、不缩小（PRD 4.4 / 美术资产 §1） */
+.p1__foot {
+  width: 100%;
+  margin-top: auto;
+  padding-top: 48rpx;
+}

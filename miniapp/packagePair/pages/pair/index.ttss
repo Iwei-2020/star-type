@@ -1,0 +1,314 @@
+/* P-05 同频图谱 · 版式见《美术资产》§6
+ * 尺寸均以 §6.4 元素清单为准（px → rpx 按 2 倍换算），色值取 PRD 5.2 令牌。 */
+
+page {
+  background-color: #1b1035;
+  background-image:
+    radial-gradient(110% 46% at 50% -6%, rgba(232, 200, 122, 0.14) 0%, rgba(232, 200, 122, 0) 60%),
+    linear-gradient(135deg, #1b1035 0%, #3a2a6b 100%);
+  background-repeat: no-repeat;
+}
+
+.p5 {
+  display: flex;
+  flex-direction: column;
+  padding-top: 48rpx;
+  padding-bottom: 32rpx;
+}
+
+/* 标题（美术资产 §6.4 ⑨：字距加宽 + 金线下分隔） */
+.p5__title {
+  padding-bottom: 20rpx;
+  border-bottom: 2rpx solid rgba(232, 200, 122, 0.18);
+  font-size: 38rpx;
+  letter-spacing: 6rpx;
+  color: #f5efe6;
+}
+
+/* ── ① 输入态（设计稿未覆盖的最小补齐）──────────────────────── */
+
+.p5__input {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 48rpx;
+  padding: 48rpx 32rpx 40rpx;
+}
+
+.p5__input-ico {
+  width: 52rpx;
+  height: 52rpx;
+}
+
+.p5__input-hint {
+  margin-top: 24rpx;
+  text-align: center;
+  font-size: 24rpx;
+  line-height: 1.6;
+  color: rgba(245, 239, 230, 0.66);
+}
+
+.p5__field {
+  box-sizing: border-box;
+  width: 100%;
+  height: 92rpx;
+  margin-top: 32rpx;
+  border: 2rpx solid rgba(232, 200, 122, 0.35);
+  border-radius: 999rpx;
+  background-color: rgba(27, 16, 53, 0.5);
+  text-align: center;
+  font-size: 30rpx;
+  letter-spacing: 8rpx;
+  color: #f5efe6;
+}
+
+.p5__field-ph {
+  font-size: 24rpx;
+  letter-spacing: 2rpx;
+  color: rgba(245, 239, 230, 0.32);
+}
+
+.p5__input-err {
+  margin-top: 20rpx;
+  text-align: center;
+  font-size: 22rpx;
+  line-height: 1.6;
+  color: rgba(232, 200, 122, 0.95);
+}
+
+.p5__input .st-btn {
+  margin-top: 40rpx;
+}
+
+/* ── ② 对照区：缩略卡 240rpx（美术资产 §6.4 ①）────────────── */
+
+.p5__duo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 56rpx;
+}
+
+.p5__thumb {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+  width: 240rpx;
+  padding: 20rpx 12rpx;
+  border: 2rpx solid rgba(232, 200, 122, 0.3);
+  border-radius: 20rpx;
+  background-color: rgba(27, 16, 53, 0.5);
+}
+
+/* 待完成占位：虚线 + 淡紫（美术资产 §6.2） */
+.p5__thumb.is-pending {
+  border-style: dashed;
+  border-color: rgba(201, 182, 255, 0.45);
+  background-color: rgba(27, 16, 53, 0.32);
+}
+
+.p5__thumb-role {
+  font-size: 18rpx;
+  letter-spacing: 1rpx;
+  color: rgba(232, 200, 122, 0.72);
+}
+
+.p5__thumb-sigil {
+  width: 88rpx;
+  height: 88rpx;
+  margin-top: 12rpx;
+}
+
+.p5__thumb.is-pending .p5__thumb-sigil {
+  opacity: 0.35;
+}
+
+.p5__thumb-name {
+  margin-top: 12rpx;
+  font-size: 26rpx;
+  letter-spacing: 2rpx;
+  color: #f5efe6;
+}
+
+.p5__link {
+  flex: none;
+  width: 56rpx;
+  height: 56rpx;
+}
+
+/* ── ③ 等待态（§6.2）────────────────────────────────────────── */
+
+.p5__wait {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 48rpx;
+}
+
+.p5__wait-ico {
+  width: 52rpx;
+  height: 52rpx;
+}
+
+.p5__wait-text {
+  margin-top: 24rpx;
+  text-align: center;
+  font-size: 25rpx;
+  line-height: 1.6;
+  color: rgba(245, 239, 230, 0.7);
+}
+
+.p5__wait .st-btn {
+  margin-top: 40rpx;
+}
+
+/* ── ④ 完成态：维度对照带 88rpx（§6.4 ③、§6.5 绘制规则）────── */
+
+.p5__bands {
+  margin-top: 40rpx;
+}
+
+/* 对照带：flex 定宽列（104 / 52 / 自适应 / 52 / 80），避免依赖 grid 与伪元素 */
+.p5__band {
+  display: flex;
+  align-items: center;
+  height: 88rpx;
+  border-bottom: 2rpx solid rgba(232, 200, 122, 0.14);
+}
+
+.p5__band-dim {
+  flex: none;
+  width: 104rpx;
+  font-size: 21rpx;
+  letter-spacing: 1rpx;
+  color: rgba(245, 239, 230, 0.6);
+}
+
+.p5__band-pole {
+  flex: none;
+  width: 52rpx;
+  text-align: center;
+  font-size: 21rpx;
+  color: rgba(245, 239, 230, 0.75);
+}
+
+/* 轨道：一致 → 实线；互补 → 虚线（§6.5） */
+.p5__track {
+  position: relative;
+  flex: 1;
+  height: 32rpx;
+}
+
+.p5__track-line {
+  position: absolute;
+  top: 15rpx;
+  left: 0;
+  right: 0;
+  height: 2rpx;
+  background-color: rgba(232, 200, 122, 0.3);
+}
+
+.p5__track-line.is-dashed {
+  height: 0;
+  border-top: 2rpx dashed rgba(232, 200, 122, 0.3);
+  background-color: transparent;
+}
+
+.p5__dot {
+  position: absolute;
+  top: 6rpx;
+  width: 20rpx;
+  height: 20rpx;
+  border-radius: 50%;
+  background-color: #e8c87a;
+  box-shadow: 0 0 12rpx 4rpx rgba(232, 200, 122, 0.45);
+}
+
+.p5__dot--a {
+  left: 4rpx;
+}
+
+.p5__dot--b {
+  right: 4rpx;
+}
+
+/* 一致：两点并作一点居中，金色光晕加强 */
+.p5__track.is-merged .p5__dot {
+  left: 50%;
+  right: auto;
+  margin-left: -10rpx;
+  box-shadow: 0 0 18rpx 8rpx rgba(232, 200, 122, 0.6);
+}
+
+.p5__band-mark {
+  flex: none;
+  width: 80rpx;
+  text-align: right;
+  font-size: 20rpx;
+  color: #e8c87a;
+}
+
+.p5__band-mark.is-comp {
+  color: #c9b6ff;
+}
+
+/* 同频度 + 相处模式标签（美术资产 §6.4 ⑤⑥） */
+.p5__result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 40rpx;
+}
+
+.p5__pct {
+  font-size: 64rpx;
+  font-weight: 600;
+  letter-spacing: 2rpx;
+  color: #e8c87a;
+}
+
+.p5__band-label {
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  letter-spacing: 2rpx;
+  color: rgba(232, 200, 122, 0.85);
+}
+
+.p5__cta {
+  margin-top: 48rpx;
+}
+
+/* ── ⑤ 过期态（§6.3）────────────────────────────────────────── */
+
+.p5__expired {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 48rpx;
+  padding: 48rpx 32rpx 40rpx;
+}
+
+.p5__expired-ico {
+  width: 52rpx;
+  height: 52rpx;
+}
+
+.p5__expired-title {
+  margin-top: 28rpx;
+  font-size: 32rpx;
+  letter-spacing: 2rpx;
+  color: #f5efe6;
+}
+
+.p5__expired-sub {
+  margin-top: 16rpx;
+  text-align: center;
+  font-size: 21rpx;
+  line-height: 1.6;
+  color: rgba(245, 239, 230, 0.6);
+}
+
+.p5__expired .st-btn {
+  margin-top: 40rpx;
+}

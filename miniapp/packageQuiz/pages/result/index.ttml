@@ -1,2 +1,80 @@
-<!-- P-04 结果页 · 骨架占位：视觉还原留第二阶段（实施计划 §七） -->
-<view class="st-page">P-04 结果页</view>
+<!-- P-04 结果页 · 版式见《美术资产-全流程视觉P01-P06线稿说明》§5；解读文案取自 strings.archetypes，页面不写死 -->
+<view class="st-page p4">
+  <!-- 计算中（美术资产 §5.4 ①）：保留符号区光晕 + 骨架条 + 「正在生成」提示 + 生成中按钮 -->
+  <view class="p4__card st-card" tt:if="{{state === 'loading'}}">
+    <view class="p4__zone">
+      <view class="p4__zone-sigil st-sigil is-spin" style="{{zoneStyle}}"></view>
+    </view>
+    <view class="p4__body">
+      <view class="p4__skel p4__skel--name"></view>
+      <view class="p4__skel p4__skel--code"></view>
+      <view class="p4__skel p4__skel--title"></view>
+      <view class="p4__skel"></view>
+      <view class="p4__skel p4__skel--mid"></view>
+      <view class="p4__skel p4__skel--short"></view>
+      <text class="p4__calc-note p4__calc-note--first">{{stateTitle}}</text>
+      <text class="p4__calc-note">{{stateText}}</text>
+    </view>
+    <view class="p4__cta">
+      <view class="st-btn st-btn--busy">{{stateCta}}</view>
+    </view>
+    <disclaimer scope="result" />
+  </view>
+
+  <!-- 计算失败（美术资产 §5.4 ②）：符号区降透明度 + 失败标题与文案 + 重新生成 -->
+  <view class="p4__card st-card" tt:if="{{state === 'failed'}}">
+    <view class="p4__zone is-dim">
+      <view class="p4__zone-sigil st-sigil" style="{{zoneStyle}}"></view>
+    </view>
+    <view class="p4__body">
+      <text class="p4__fail-title">{{stateTitle}}</text>
+      <text class="p4__fail-text">{{stateText}}</text>
+    </view>
+    <view class="p4__cta">
+      <view class="st-btn st-btn--primary" bindtap="onRetry">{{stateCta}}</view>
+    </view>
+    <disclaimer scope="result" />
+  </view>
+
+  <!-- 结果卡（判定卡）：符号区 / 原型名 / 原型码 / 意象行 / 概述与特质 / 相处模式提示 / 免责 -->
+  <view class="p4__card st-card" tt:if="{{state === 'result'}}">
+    <view class="p4__zone st-sigil" style="{{sigilStyle}}"></view>
+
+    <text class="p4__name">{{name}}</text>
+    <text class="p4__code">{{code}}</text>
+
+    <view class="p4__row">
+      <text class="p4__row-label">{{imageryLabel}}</text>
+      <text class="p4__row-text">{{imagery}}</text>
+    </view>
+
+    <text class="p4__summary">{{summary}}</text>
+
+    <view class="p4__traits">
+      <text class="p4__trait" tt:for="{{traits}}" tt:key="*this">{{item}}</text>
+    </view>
+
+    <view class="p4__hintblock">
+      <text class="p4__row-label">{{relationLabel}}</text>
+      <text class="p4__hint-text">{{relationHint}}</text>
+    </view>
+
+    <disclaimer scope="result" />
+  </view>
+
+  <view class="p4__cta" tt:if="{{state === 'result'}}">
+    <view class="st-btn st-btn--primary" bindtap="onInvite">{{ctaInvite}}</view>
+    <view class="st-btn st-btn--ghost" bindtap="onShare">{{ctaShare}}</view>
+  </view>
+
+  <share-popup
+    visible="{{shareVisible}}"
+    archetypeName="{{name}}"
+    archetypeCode="{{code}}"
+    pairCode="{{pairCode}}"
+    bind:close="onShareClose"
+    bind:share="onShareChannel"
+    bind:invite="onShareInvite"
+    bind:retry="onShareRetry"
+  />
+</view>

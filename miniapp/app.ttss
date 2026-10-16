@@ -31,3 +31,71 @@ page {
   min-height: 100vh;
   padding: 0 48rpx;
 }
+
+/* ── 通用功能按钮（美术资产 §1：通栏、全圆 999rpx）──────────────── */
+
+.st-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  height: 92rpx;
+  border-radius: 999rpx;
+  font-size: 28rpx;
+  letter-spacing: 1rpx;
+}
+
+.st-btn + .st-btn {
+  margin-top: 24rpx;
+}
+
+/* 主按钮：暖金实底 + 深底文字（承接首页「开始测试」等主行动点） */
+.st-btn--primary {
+  background: linear-gradient(135deg, #e8c87a 0%, #d8b25f 100%);
+  color: #1b1035;
+  font-weight: 600;
+}
+
+/* 次按钮：金色描边幽灵态 */
+.st-btn--ghost {
+  border: 2rpx solid rgba(232, 200, 122, 0.65);
+  color: #e8c87a;
+}
+
+/* 不可用 / 生成中：整体弱化，不响应（视觉还原不改变交互禁用语义） */
+.st-btn--busy {
+  border: 2rpx solid rgba(232, 200, 122, 0.35);
+  color: rgba(232, 200, 122, 0.55);
+}
+
+/* ── 通用卡片（圆角 32rpx，次底 + 金线描边）────────────────────── */
+
+.st-card {
+  box-sizing: border-box;
+  border: 2rpx solid rgba(232, 200, 122, 0.22);
+  border-radius: 32rpx;
+  background-color: rgba(42, 27, 74, 0.6); /* --bg-sub 60% */
+}
+
+/* ── 线描符号渲染容器（素材为 data-URI，见 miniapp/shared/assets.js）── */
+
+.st-sigil {
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: contain;
+}
+
+/* ── 弱化说明文字（规格条 / 时长说明 / 操作提示）────────────────── */
+
+.st-note {
+  font-size: 21rpx;
+  line-height: 1.6;
+  color: rgba(245, 239, 230, 0.6);
+}
+
+.st-hint {
+  font-size: 20rpx;
+  line-height: 1.6;
+  color: rgba(245, 239, 230, 0.5);
+}

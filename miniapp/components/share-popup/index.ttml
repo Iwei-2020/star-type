@@ -1,17 +1,21 @@
+<!-- P-06 分享弹窗 · 版式见《美术资产》§7；文案一律取自 strings.ui.share（组件内不写死） -->
 <view class="st-mask" tt:if="{{visible}}" tt:catchtap="onMaskTap">
   <view class="st-popup" tt:catchtap="onPopupTap">
     <view class="st-popup__head">
-      <text class="st-popup__title">分享给好友</text>
-      <text class="st-popup__subtitle">邀请 TA 完成测试，一起看同频图谱</text>
+      <text class="st-popup__title">{{title}}</text>
+      <text class="st-popup__subtitle">{{subtitle}}</text>
     </view>
 
-    <view class="st-popup__body">
-      <view class="st-popup__card">
-        <text class="st-popup__card-name">{{archetypeName}}</text>
-        <text class="st-popup__card-code">{{pairCode}}</text>
-        <text class="st-popup__card-tip">{{cardText}}</text>
+    <view class="st-popup__top">
+      <!-- 分享卡预览（美术资产 §7.3 ②）：符号 + 原型名 + 配对码 + 免责 -->
+      <view class="st-popup__preview">
+        <view class="st-popup__preview-sigil st-sigil" style="{{previewSigilStyle}}"></view>
+        <text class="st-popup__preview-name">{{archetypeName}}</text>
+        <text class="st-popup__preview-code" tt:if="{{pairCode}}">{{pairCodeLabel}} {{pairCode}}</text>
+        <text class="st-popup__preview-note">{{cardText}}</text>
       </view>
 
+      <!-- 渠道 2×2（美术资产 §7.3 ③） -->
       <view class="st-popup__channels">
         <view
           class="st-popup__channel"
@@ -20,14 +24,17 @@
           data-channel="{{item.key}}"
           tt:catchtap="onChannelTap"
         >
-          <text>{{item.label}}</text>
+          <view class="st-popup__channel-ico">
+            <view class="st-popup__channel-glyph st-sigil" style="{{item.iconStyle}}"></view>
+          </view>
+          <text class="st-popup__channel-label">{{item.label}}</text>
         </view>
       </view>
     </view>
 
     <view class="st-popup__actions">
-      <view class="st-popup__action" tt:catchtap="onInviteTap">去邀请配对</view>
-      <view class="st-popup__action" tt:catchtap="onRetryTap">再测一次</view>
+      <view class="st-popup__action st-popup__action--primary" tt:catchtap="onInviteTap">{{ctaInvite}}</view>
+      <view class="st-popup__action" tt:catchtap="onRetryTap">{{ctaRetry}}</view>
     </view>
 
     <disclaimer scope="share" />

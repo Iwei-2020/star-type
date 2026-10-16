@@ -1,0 +1,228 @@
+/* P-04 结果页 · 版式见《美术资产》§5 */
+
+page {
+  background-color: #1b1035;
+  background-image:
+    radial-gradient(110% 46% at 50% -6%, rgba(232, 200, 122, 0.14) 0%, rgba(232, 200, 122, 0) 60%),
+    linear-gradient(135deg, #1b1035 0%, #3a2a6b 100%);
+  background-repeat: no-repeat;
+}
+
+.p4 {
+  display: flex;
+  flex-direction: column;
+  padding-top: 48rpx;
+  padding-bottom: 32rpx;
+}
+
+/* ── 结果卡（通栏 654rpx，圆角 32rpx）────────────────────────── */
+
+.p4__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+}
+
+/* 符号区 420rpx：符号本图 + 星点光晕（美术资产 §5.2 ①②） */
+.p4__zone {
+  width: 100%;
+  height: 420rpx;
+}
+
+.p4__name {
+  margin-top: 8rpx;
+  font-size: 72rpx;
+  font-weight: 600;
+  letter-spacing: 6rpx;
+  color: #f5efe6;
+}
+
+.p4__code {
+  margin-top: 10rpx;
+  font-size: 28rpx;
+  letter-spacing: 10rpx;
+  color: rgba(245, 239, 230, 0.6);
+}
+
+/* 意象行（美术资产 §5.2 ④） */
+.p4__row {
+  display: flex;
+  align-items: baseline;
+  width: 100%;
+  margin-top: 36rpx;
+  padding: 0 40rpx;
+  box-sizing: border-box;
+}
+
+.p4__row-label {
+  flex: none;
+  font-size: 22rpx;
+  color: rgba(232, 200, 122, 0.85);
+}
+
+.p4__row-text {
+  margin-left: 16rpx;
+  flex: 1;
+  font-size: 32rpx;
+  line-height: 1.6;
+  color: rgba(245, 239, 230, 0.92);
+}
+
+.p4__summary {
+  width: 100%;
+  margin-top: 28rpx;
+  padding: 0 40rpx;
+  box-sizing: border-box;
+  font-size: 25rpx;
+  line-height: 1.6;
+  color: rgba(245, 239, 230, 0.78);
+}
+
+.p4__traits {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin-top: 24rpx;
+  padding: 0 40rpx;
+  box-sizing: border-box;
+}
+
+.p4__trait {
+  position: relative;
+  padding-left: 26rpx;
+  font-size: 25rpx;
+  line-height: 1.6;
+  color: rgba(245, 239, 230, 0.78);
+}
+
+.p4__trait + .p4__trait {
+  margin-top: 14rpx;
+}
+
+/* 相处模式提示：独立浅底块（--bg-sub 40%，美术资产 §5.2 ⑥） */
+.p4__hintblock {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 40rpx;
+  padding: 28rpx 40rpx;
+  background-color: rgba(42, 27, 74, 0.4);
+}
+
+.p4__hint-text {
+  margin-top: 14rpx;
+  font-size: 25rpx;
+  line-height: 1.6;
+  color: rgba(245, 239, 230, 0.8);
+}
+
+.p4__cta {
+  width: 100%;
+  margin-top: 40rpx;
+}
+
+/* ── 计算中 / 计算失败态（美术资产 §5.4）：沿用结果卡版式，用骨架条占位 ─────── */
+
+/* 符号区内的环形光晕（装饰库 C-2「环状光晕」，加载态指定素材） */
+.p4__zone-sigil {
+  width: 100%;
+  height: 100%;
+}
+
+/* 计算失败：符号区整体降到 38% 不透明度（美术资产 §5.4 ②） */
+.p4__zone.is-dim {
+  opacity: 0.38;
+}
+
+.p4__body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 24rpx 40rpx 0;
+}
+
+/* 骨架条（美术资产 §5.4 ①：--ivory 10% ↔ 24% 的三段渐变） */
+.p4__skel {
+  width: 88%;
+  height: 18rpx;
+  margin: 14rpx 0;
+  border-radius: 10rpx;
+  background-image: linear-gradient(
+    90deg,
+    rgba(245, 239, 230, 0.1) 0%,
+    rgba(245, 239, 230, 0.24) 50%,
+    rgba(245, 239, 230, 0.1) 100%
+  );
+}
+
+.p4__skel--name {
+  width: 236rpx;
+  height: 32rpx;
+  margin: 4rpx 0 0;
+}
+
+.p4__skel--code {
+  width: 140rpx;
+  margin-top: 18rpx;
+}
+
+.p4__skel--title {
+  width: 192rpx;
+  height: 24rpx;
+  margin: 28rpx 0 14rpx;
+}
+
+.p4__skel--mid {
+  width: 94%;
+}
+
+.p4__skel--short {
+  width: 62%;
+}
+
+.p4__calc-note {
+  margin-top: 14rpx;
+  text-align: center;
+  font-size: 22rpx;
+  line-height: 1.9;
+  color: #e8c87a;
+  opacity: 0.85;
+}
+
+.p4__calc-note--first {
+  padding-top: 18rpx;
+}
+
+/* 计算失败文案：在 .p4__body 内，左右留白由 body 提供，此处不再重复 */
+.p4__fail-text {
+  width: 100%;
+  text-align: center;
+  font-size: 25rpx;
+  line-height: 1.6;
+  color: rgba(245, 239, 230, 0.78);
+}
+
+.p4__fail-title {
+  padding-bottom: 12rpx;
+  font-size: 34rpx;
+  letter-spacing: 4rpx;
+  color: #f5efe6;
+}
+
+/* 旋转仅用于「计算中」（美术资产 §5.4 ①） */
+.is-spin {
+  animation: p4-spin 3.6s linear infinite;
+}
+
+@keyframes p4-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

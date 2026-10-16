@@ -1,2 +1,25 @@
-<!-- P-01 首页 · 骨架占位：视觉还原留第二阶段（实施计划 §七），此处仅保证 app.json 声明的页面真实存在 -->
-<view class="st-page">P-01 首页</view>
+<!-- P-01 首页 · 版式与色值见《美术资产-全流程视觉P01-P06线稿说明》§2；字样一律经 core/display.js 取得 -->
+<view class="st-page p1">
+  <view class="p1__head">
+    <text class="p1__brand">{{brand}}</text>
+    <text class="p1__brandsub">{{brandSub}}</text>
+  </view>
+
+  <view class="p1__sigil st-sigil" style="{{sigilStyle}}"></view>
+
+  <text class="p1__tagline">{{tagline}}</text>
+
+  <view class="p1__spec">
+    <text class="st-note">{{spec}}</text>
+  </view>
+
+  <view class="p1__cta">
+    <view class="st-btn st-btn--primary" bindtap="onStart">{{ctaStart}}</view>
+    <view class="st-btn st-btn--ghost" bindtap="onEnterPair">{{ctaPair}}</view>
+    <view class="st-btn st-btn--ghost" tt:if="{{canResume}}" bindtap="onResume">{{ctaResume}}</view>
+  </view>
+
+  <view class="p1__foot">
+    <disclaimer scope="home" />
+  </view>
+</view>

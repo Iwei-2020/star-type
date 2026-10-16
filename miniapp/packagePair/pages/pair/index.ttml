@@ -1,2 +1,88 @@
-<!-- P-05 好友配对页 · 骨架占位：视觉还原留第二阶段（实施计划 §七） -->
-<view class="st-page">P-05 好友配对页</view>
+<!-- P-05 同频图谱 · 版式见《美术资产-全流程视觉P01-P06线稿说明》§6（已完成 6.1 / 等待 6.2 / 已过期 6.3）
+     文案一律取自 strings.ui.pair，页面不写死；素材取自 shared/assets.js（data-URI → 内联 background）。 -->
+<view class="st-page p5">
+  <text class="p5__title">{{title}}</text>
+
+  <!-- ① 输入态：设计稿未覆盖，为首页「已有邀请码 · 直接配对」的落地最小补齐（见交付说明） -->
+  <view class="p5__input st-card" tt:if="{{view === 'input'}}">
+    <view class="p5__input-ico st-sigil" style="{{inputIconStyle}}"></view>
+    <text class="p5__input-hint">{{inputHint}}</text>
+    <input
+      class="p5__field"
+      value="{{codeInput}}"
+      placeholder="{{inputPlaceholder}}"
+      placeholder-class="p5__field-ph"
+      bindinput="onCodeInput"
+    />
+    <text class="p5__input-err" tt:if="{{inputError}}">{{inputError}}</text>
+    <view class="st-btn st-btn--primary" bindtap="onConfirm">{{inputCta}}</view>
+  </view>
+
+  <!-- ② 对照区：本人缩略卡 + 连接符 + 对方缩略卡（等待态 / 完成态共用，美术资产 §6.1 §6.2） -->
+  <view class="p5__duo" tt:if="{{view === 'waiting' || view === 'completed'}}">
+    <view class="p5__thumb">
+      <text class="p5__thumb-role">{{leftRole}}</text>
+      <view class="p5__thumb-sigil st-sigil" style="{{leftSigilStyle}}"></view>
+      <text class="p5__thumb-name">{{leftName}}</text>
+    </view>
+    <view class="p5__link st-sigil" style="{{linkStyle}}"></view>
+    <view class="p5__thumb {{rightPending ? 'is-pending' : ''}}">
+      <text class="p5__thumb-role">{{rightRole}}</text>
+      <view class="p5__thumb-sigil st-sigil" style="{{rightSigilStyle}}"></view>
+      <text class="p5__thumb-name">{{rightName}}</text>
+    </view>
+  </view>
+
+  <!-- ③ 等待态（§6.2）：等待文案 + 再次邀请 -->
+  <view class="p5__wait" tt:if="{{view === 'waiting'}}">
+    <view class="p5__wait-ico st-sigil" style="{{waitIconStyle}}"></view>
+    <text class="p5__wait-text">{{waitText}}</text>
+    <view class="st-btn st-btn--ghost" bindtap="onInviteAgain">{{waitCta}}</view>
+  </view>
+
+  <!-- ④ 完成态（§6.1）：4 条维度对照带（§6.5 绘制规则）→ 同频度 → 相处模式标签 → 双按钮 -->
+  <view class="p5__bands" tt:if="{{view === 'completed'}}">
+    <view class="p5__band" tt:for="{{dimensions}}" tt:key="dim">
+      <text class="p5__band-dim">{{item.title}}</text>
+      <text class="p5__band-pole">{{item.leftLabel}}</text>
+      <view class="p5__track {{item.comp ? '' : 'is-merged'}}">
+        <view class="p5__track-line {{item.comp ? 'is-dashed' : ''}}"></view>
+        <view class="p5__dot p5__dot--a"></view>
+        <view class="p5__dot p5__dot--b" tt:if="{{item.comp}}"></view>
+      </view>
+      <text class="p5__band-pole">{{item.rightLabel}}</text>
+      <text class="p5__band-mark {{item.comp ? 'is-comp' : ''}}">{{item.mark}}</text>
+    </view>
+  </view>
+
+  <view class="p5__result" tt:if="{{view === 'completed'}}">
+    <text class="p5__pct">{{similarityText}}</text>
+    <text class="p5__band-label">{{bandText}}</text>
+  </view>
+
+  <view class="p5__cta" tt:if="{{view === 'completed'}}">
+    <view class="st-btn st-btn--primary" bindtap="onShare">{{shareCta}}</view>
+    <view class="st-btn st-btn--ghost" bindtap="onSwitch">{{switchCta}}</view>
+  </view>
+
+  <!-- ⑤ 过期态（§6.3）：状态卡 + 重新发起 -->
+  <view class="p5__expired st-card" tt:if="{{view === 'expired'}}">
+    <view class="p5__expired-ico st-sigil" style="{{expiredIconStyle}}"></view>
+    <text class="p5__expired-title">{{expiredTitle}}</text>
+    <text class="p5__expired-sub">{{expiredSub}}</text>
+    <view class="st-btn st-btn--primary" bindtap="onRestart">{{expiredCta}}</view>
+  </view>
+
+  <disclaimer scope="pair" />
+
+  <share-popup
+    visible="{{shareVisible}}"
+    archetypeName="{{shareName}}"
+    archetypeCode="{{shareCode}}"
+    pairCode="{{pairCode}}"
+    bind:close="onShareClose"
+    bind:share="onShareChannel"
+    bind:invite="onPopupInvite"
+    bind:retry="onPopupRetry"
+  />
+</view>

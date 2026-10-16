@@ -1,0 +1,6 @@
+{
+  "usingComponents": {
+    "disclaimer": "../../../components/disclaimer/index",
+    "share-popup": "../../../components/share-popup/index"
+  }
+}

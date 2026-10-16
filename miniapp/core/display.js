@@ -56,8 +56,30 @@ function disclaimer(key) {
   return strings.disclaimers[key] || '';
 }
 
+/** 全部免责文案（按页面 scope 索引）。 */
 function disclaimers() {
   return Object.assign({}, strings.disclaimers);
+}
+
+/**
+ * 界面静态文案查表（唯一样本在构建期生成的 `strings.ui`）。
+ * key 为点号路径：`ui('home.ctaStart')`、`ui('guide.steps')`、`ui('share.channels')`。
+ * 路径缺失返回 ''；数组 / 对象原样返回，供 `tt:for` 直接使用。
+ */
+function ui(keyPath) {
+  let node = strings.ui;
+  for (const part of String(keyPath).split('.')) {
+    if (node === null || node === undefined) return '';
+    node = node[part];
+  }
+  return node === undefined ? '' : node;
+}
+
+/** 把 `{name}` 占位替换为 vars 中的值（如答题进度「第 {n} / {total} 题」）。 */
+function fill(template, vars) {
+  return String(template).replace(/\{(\w+)\}/g, (whole, name) =>
+    vars && Object.prototype.hasOwnProperty.call(vars, name) ? String(vars[name]) : whole
+  );
 }
 
 /** 相处模式档位，下标即 C 值（0–4）。 */
@@ -89,14 +111,22 @@ function formatPercent(value) {
   return `${text}%`;
 }
 
+/** 答题页统一题问（题库 §1.1，取自 PRD §4.4 同一句；P-03 每题上方固定问法）。 */
+function questionPrompt() {
+  return strings.quiz.questionPrompt;
+}
+
 module.exports = {
   archetype,
   archetypeName,
+  questionPrompt,
   questions,
   question,
   questionIds,
   disclaimer,
   disclaimers,
+  ui,
+  fill,
   band,
   bandByLabel,
   pairState,

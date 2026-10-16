@@ -1,5 +1,7 @@
-/* P-06 分享弹窗：仅为结构可运行的最小样式，动效与精修留第二阶段（实施计划 §七）
- * 规格参见《美术资产》§七：蒙层透明度 66%、弹窗上圆角 44rpx、抽屉自底部上滑。 */
+/* P-06 分享弹窗 · 版式见《美术资产》§7.3（px → rpx 按 2 倍换算）
+ * 合规锁：① 蒙层不透明度 66%；② 免责提示字号不得低于 24rpx（预览内与弹窗底部两处常驻）。 */
+
+/* 蒙层（美术资产 §7.3 ①：--bg-deep 加深，66%） */
 .st-mask {
   position: fixed;
   top: 0;
@@ -7,103 +9,165 @@
   bottom: 0;
   left: 0;
   z-index: 100;
-  background-color: rgba(27, 16, 53, 0.66);
+  background-color: rgba(14, 8, 32, 0.66);
 }
 
+/* 抽屉：上圆角 44rpx，自底部上滑，金线描边 + 上投影 */
 .st-popup {
   position: absolute;
   right: 0;
   bottom: 0;
   left: 0;
-  padding: 32rpx 0 0;
-  border-radius: 44rpx 44rpx 0 0;
-  background-color: #2a1b4a; /* --bg-sub */
+  box-sizing: border-box;
+  padding: 32rpx 36rpx 36rpx;
+  border-top: 2rpx solid rgba(232, 200, 122, 0.35);
+  border-radius: 44rpx 44rpx 52rpx 52rpx;
+  background-image: linear-gradient(180deg, #2a1b4a 0%, #1b1035 100%);
+  box-shadow: 0 -28rpx 68rpx rgba(0, 0, 0, 0.5);
 }
 
 .st-popup__head {
-  padding: 0 48rpx 24rpx;
   text-align: center;
 }
 
 .st-popup__title {
-  display: block;
   font-size: 38rpx;
+  letter-spacing: 4rpx;
   color: #f5efe6;
 }
 
 .st-popup__subtitle {
   display: block;
-  margin-top: 8rpx;
+  margin-top: 10rpx;
   font-size: 22rpx;
-  color: rgba(245, 239, 230, 0.6);
+  color: rgba(201, 182, 255, 0.82); /* --violet 82% */
 }
 
-.st-popup__body {
+/* ── ② 分享卡预览 + ③ 渠道网格 ──────────────────────────────── */
+
+.st-popup__top {
   display: flex;
   align-items: center;
-  padding: 0 48rpx;
+  padding: 32rpx 0 8rpx;
 }
 
-.st-popup__card {
-  width: 224rpx;
-  height: 224rpx;
-  padding: 16rpx;
+.st-popup__preview {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   box-sizing: border-box;
-  border: 2rpx solid #e8c87a; /* --gold */
-  border-radius: 20rpx;
-  text-align: center;
+  width: 208rpx;
+  height: 208rpx;
+  padding: 12rpx 8rpx;
+  border: 2rpx solid rgba(232, 200, 122, 0.38);
+  border-radius: 24rpx;
+  background-image: linear-gradient(135deg, #1b1035 0%, #3a2a6b 100%);
 }
 
-.st-popup__card-name {
-  display: block;
-  margin-top: 32rpx;
-  font-size: 32rpx;
+.st-popup__preview-sigil {
+  width: 64rpx;
+  height: 64rpx;
+}
+
+.st-popup__preview-name {
+  margin-top: 6rpx;
+  font-size: 26rpx;
+  letter-spacing: 2rpx;
   color: #f5efe6;
 }
 
-.st-popup__card-code {
-  display: block;
-  margin-top: 8rpx;
+.st-popup__preview-code {
+  margin-top: 6rpx;
   font-size: 24rpx;
+  letter-spacing: 1rpx;
   color: #e8c87a;
 }
 
-.st-popup__card-tip {
-  display: block;
-  margin-top: 32rpx;
-  font-size: 24rpx; /* 与免责组件同锁 24rpx 下限 */
-  color: rgba(245, 239, 230, 0.6);
+/* 免责提示：锁 24rpx（美术资产 §1 下限，不得低于） */
+.st-popup__preview-note {
+  margin-top: 8rpx;
+  text-align: center;
+  font-size: 24rpx;
+  line-height: 1.35;
+  color: rgba(245, 239, 230, 0.52);
 }
 
+/* 渠道网格用 flex + 定宽（48%）+ space-between 排布，不依赖 grid / nth-child
+ * （部分端对 grid 与伪类选择器支持不一致） */
 .st-popup__channels {
-  flex: 1;
   display: flex;
+  flex: 1;
   flex-wrap: wrap;
+  justify-content: space-between;
   margin-left: 24rpx;
 }
 
 .st-popup__channel {
-  width: 50%;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  width: 48%;
   min-height: 88rpx; /* 交互热区 ≥ 88 × 88rpx（美术资产 §1） */
-  line-height: 88rpx;
-  text-align: center;
-  font-size: 24rpx;
-  color: #f5efe6;
+  margin-bottom: 14rpx;
+  padding: 12rpx 16rpx;
+  border: 2rpx solid rgba(232, 200, 122, 0.2);
+  border-radius: 20rpx;
+  background-color: rgba(27, 16, 53, 0.5);
 }
+
+/* 图标位 52rpx 金环 + 32rpx 线描字形（美术资产 §1 图标展示尺寸） */
+.st-popup__channel-ico {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 52rpx;
+  height: 52rpx;
+  border: 2rpx solid rgba(232, 200, 122, 0.45);
+  border-radius: 50%;
+  background-color: rgba(232, 200, 122, 0.12);
+}
+
+.st-popup__channel-glyph {
+  width: 32rpx;
+  height: 32rpx;
+}
+
+.st-popup__channel-label {
+  margin-left: 12rpx;
+  font-size: 22rpx;
+  color: rgba(245, 239, 230, 0.85);
+}
+
+/* ── ④ 双按钮 + 免责 ───────────────────────────────────────── */
 
 .st-popup__actions {
   display: flex;
-  padding: 24rpx 48rpx 0;
+  padding-top: 28rpx;
 }
 
 .st-popup__action {
   flex: 1;
-  min-height: 84rpx;
-  margin: 0 12rpx;
-  border: 2rpx solid #e8c87a;
+  box-sizing: border-box;
+  height: 84rpx;
+  border: 2rpx solid rgba(232, 200, 122, 0.65);
   border-radius: 999rpx;
-  line-height: 84rpx;
+  line-height: 80rpx;
   text-align: center;
-  font-size: 26rpx;
-  color: #f5efe6;
+  font-size: 25rpx;
+  color: #e8c87a;
+}
+
+.st-popup__action--primary {
+  border-color: transparent;
+  background-image: linear-gradient(135deg, #e8c87a 0%, #d8b25f 100%);
+  color: #1b1035;
+  font-weight: 600;
+}
+
+.st-popup__action + .st-popup__action {
+  margin-left: 20rpx;
 }

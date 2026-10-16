@@ -4,7 +4,8 @@
 /**
  * 构建期文案生成器
  *
- * 从 4 份【内容叙事】资产里**机械提取**文案，生成前端唯一可消费的文案产物：
+ * 从 4 份【内容叙事】资产里**机械提取**叙事文案，并合入生成器内集中声明的界面静态文案，
+ * 生成前端唯一可消费的文案产物：
  *   - miniapp/shared/strings.js
  *
  * 为什么不做人工誊抄：文案资产是唯一权威，手抄必然漂移。生成器把「资产 → 代码」
@@ -45,6 +46,94 @@ const FILES = {
   bands: path.join(DOCS, '文案资产-5档相处模式解读.md'),
 };
 
+/**
+ * 界面静态文案（UI chrome）——按钮文字、区块标题、状态提示等。
+ *
+ * 为什么声明在生成器里：项目合规硬约束是「全部对外文案集中于单一文案源、页面内无硬编码文案」
+ * （《技术资产》§12 验收清单）。叙事文案已由 4 份资产机械提取；界面静态文案尚无独立资产可依，
+ * 故在此集中声明，随生成一并写入 `strings.ui`，页面一律经 `core/display.js` 的 `ui()` 读取，
+ * **不在 TTML 里写死任何字样**。本表同样纳入生成期的禁用词自检。
+ *
+ * 与资产重叠的两项不在此重复声明，直接取自资产（避免同一句话两处维护）：
+ *   - `ui.home.tagline`          ← PRD §1.1 一句话介绍
+ *   - `ui.share.channels[].label` ← PRD §7.2 分享渠道（已确认 4 项）
+ * 生成时断言其存在与条数，资产改动会被 `npm run gen:check` 立即暴露。
+ */
+const SHARE_CHANNEL_KEYS = ['friend', 'group', 'save_image', 'copy_code'];
+
+const UI_TEXT = {
+  home: {
+    brand: '星语人格',
+    brandSub: '好友同频测试',
+    spec: '10 道题 · 约 3 分钟 · 无需注册',
+    ctaStart: '开始测试',
+    ctaPair: '已有邀请码 · 直接配对',
+    ctaResume: '继续上次答题',
+  },
+  guide: {
+    title: '开始之前',
+    subtitle: '三步看懂这次测试',
+    steps: [
+      { no: '1', title: '回答 10 道题', desc: '凭第一感受二选一，没有对错，也不用纠结。' },
+      { no: '2', title: '生成人格映像卡', desc: '得到你的原型符号与特质解读。' },
+      { no: '3', title: '邀请好友配对', desc: '生成一张同频图谱，看你们的相处模式。' },
+    ],
+    note: '预计用时：约 3 分钟',
+    noteResume: '上次进度已保留',
+    cta: '开始答题',
+  },
+  quiz: {
+    progress: '第 {n} / {total} 题',
+    back: '上一题',
+    hint: '作答即进入下一题 · 可返回上一题修改',
+    hintLast: '生成结果',
+  },
+  result: {
+    ctaInvite: '邀请好友配对',
+    ctaShare: '分享',
+    loadingTitle: '正在生成你的人格映像',
+    loadingSub: '星点正在聚合，请稍候',
+    loadingCta: '生成中…',
+    failTitle: '未能生成结果',
+    failText: '网络似乎不太稳定，你的人格映像没有生成成功。可以重新试一次。',
+    failCta: '重新生成',
+    pairCodeLabel: '配对码',
+    // 结果卡内的两个字段标签，取自《文案资产-16人格原型解读》对应字段名（**主导意象** / **相处模式提示**）
+    imageryLabel: '主导意象',
+    relationLabel: '相处模式提示',
+  },
+  pair: {
+    title: '同频图谱',
+    roleSelf: '你的卡',
+    roleInviter: '发起者',
+    roleInvitee: '受邀者',
+    pendingName: '待完成',
+    waitText: '等待对方完成测试…',
+    waitCta: '再次邀请',
+    expiredTitle: '本次邀请已过期',
+    expiredSub: '邀请有效期 7 天',
+    expiredCta: '重新发起配对',
+    markSame: '一致',
+    markComp: '互补',
+    bandPrefix: '相处模式：',
+    shareCta: '分享图谱',
+    switchCta: '换个好友配对',
+    // 手工输入配对码：首页「已有邀请码 · 直接配对」的落地态。设计稿未覆盖此态（见交付说明），
+    // 为闭合该入口补的最小输入面，示例拒绝原因对齐 core/route.js checkPairCode 的判定口径。
+    inputHint: '输入好友的 8 位配对码',
+    inputPlaceholder: '8 位字母与数字',
+    inputCta: '确认配对',
+    inputInvalid: '配对码格式不正确，请核对后再试',
+    inputAmbiguous: '配对码不含 I / L / O / 0 / 1 这几个易混字符',
+  },
+  share: {
+    title: '分享给好友',
+    subtitle: '邀请 TA 完成测试，一起看同频图谱',
+    ctaInvite: '去邀请配对',
+    ctaRetry: '再测一次',
+  },
+};
+
 const problems = [];
 const fail = (msg) => problems.push(msg);
 
@@ -83,6 +172,41 @@ function firstMatch(lines, pattern) {
     if (m) return m;
   }
   return null;
+}
+
+// ─────────────────────────────────────────────
+// 0. 界面静态文案：手工声明 + 两处取自 PRD 的资产重叠项
+// ─────────────────────────────────────────────
+
+function buildUi(prdLines) {
+  const tagline = firstMatch(prdLines, /^\s*- 一句话介绍：(.*)$/);
+  if (!tagline) fail('PRD §1.1 缺少「一句话介绍」');
+
+  const channelLine = firstMatch(prdLines, /^\s*- \*\*分享渠道（已确认 (\d+) 项）\*\*：(.+)$/);
+  if (!channelLine) fail('PRD §7.2 缺少「分享渠道（已确认 N 项）」行');
+
+  // 渠道行格式：`…**：抖音好友、抖音群、保存图片、复制配对码；渠道实际可用性以…为准`
+  const labels = channelLine
+    ? channelLine[2]
+        .split('；')[0]
+        .split('、')
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : [];
+  const declared = channelLine ? Number(channelLine[1]) : 0;
+  if (declared !== labels.length) {
+    fail(`PRD §7.2 声明分享渠道 ${declared} 项，实际解析出 ${labels.length} 项`);
+  }
+  if (labels.length !== SHARE_CHANNEL_KEYS.length) {
+    fail(`分享渠道键位数 ${SHARE_CHANNEL_KEYS.length} 与 PRD §7.2 渠道数 ${labels.length} 不一致`);
+  }
+
+  const channels = SHARE_CHANNEL_KEYS.map((key, i) => ({ key, label: labels[i] || '' }));
+
+  return Object.assign({}, UI_TEXT, {
+    home: Object.assign({}, UI_TEXT.home, { tagline: tagline ? tagline[1].trim() : '' }),
+    share: Object.assign({}, UI_TEXT.share, { channels }),
+  });
 }
 
 // ─────────────────────────────────────────────
@@ -335,7 +459,7 @@ function extractPairStates(lines) {
 // 5. 交叉一致性断言（文案之间不得互相矛盾）
 // ─────────────────────────────────────────────
 
-function assertCrossConsistency(disclaimers, quiz, archetypes, bands) {
+function assertCrossConsistency(disclaimers, quiz, archetypes, bands, ui) {
   if (disclaimers.quiz && quiz.intro && disclaimers.quiz !== quiz.intro) {
     fail('免责文案「答题页」与题库引导语不一致（PRD 4.4 要求逐字一致）');
   }
@@ -349,7 +473,7 @@ function assertCrossConsistency(disclaimers, quiz, archetypes, bands) {
 
   // 全量禁用词扫描留给 tools/check-strings.js（构建门禁），此处只做生成期快速自检
   const banned = ['命中注定', '一定会', '宿命', '吉凶', '预言', '转运', '算命', '预测未来'];
-  const haystack = JSON.stringify({ disclaimers, quiz, archetypes, bands });
+  const haystack = JSON.stringify({ disclaimers, quiz, archetypes, bands, ui });
   for (const word of banned) {
     if (haystack.includes(word)) fail(`生成产物命中禁用词「${word}」`);
   }
@@ -363,9 +487,10 @@ const GEN_HEADER = [
   "'use strict';",
   '',
   '// ─────────────────────────────────────────────────────────────',
-  '// 本文件由 tools/gen-strings.js 从 4 份【内容叙事】资产机械提取生成。',
+  '// 本文件由 tools/gen-strings.js 生成：叙事文案提取自 4 份【内容叙事】资产，',
+  '// 界面静态文案合入生成器内集中声明的 UI_TEXT（见该文件顶部说明）。',
   '// 禁止手改：改动会在下一次生成时被覆盖，且 gen-strings.js --check 会失败。',
-  '// 改动文案请改资产原文，然后重新运行 node tools/gen-strings.js。',
+  '// 叙事文案改资产原文；界面文案改 tools/gen-strings.js 的 UI_TEXT，然后重新运行生成。',
   '// ─────────────────────────────────────────────────────────────',
   '',
 ].join('\n');
@@ -408,6 +533,7 @@ function main() {
   const archetypes = extractArchetypes(archetypeLines);
   const bands = extractBands(bandLines);
   const pairStates = extractPairStates(bandLines);
+  const ui = buildUi(prdLines);
 
   // 提取例外：答题页文案以 PRD §4.4 为唯一权威（PRD 第 4.4 节「免责文案统一模板」，
   // 该行即答题页底部弱提示 = 答题页引导语，本是同一处页面文字）。
@@ -421,7 +547,7 @@ function main() {
   }
   if (disclaimers.quiz) quiz.intro = disclaimers.quiz;
 
-  assertCrossConsistency(disclaimers, quiz, archetypes, bands);
+  assertCrossConsistency(disclaimers, quiz, archetypes, bands, ui);
 
   if (problems.length > 0) {
     console.error('[gen-strings] 提取校验未通过：');
@@ -431,7 +557,7 @@ function main() {
 
   for (const n of notices) console.warn(`[gen-strings] 提示：${n}`);
 
-  const content = renderStrings({ disclaimers, quiz, archetypes, bands, pairStates });
+  const content = renderStrings({ ui, disclaimers, quiz, archetypes, bands, pairStates });
 
   if (CHECK_ONLY) {
     if (!fs.existsSync(OUT)) {
@@ -452,8 +578,9 @@ function main() {
   fs.writeFileSync(OUT, content, 'utf8');
 
   console.log(
-    `[gen-strings] 生成完成：免责 ${Object.keys(disclaimers).length} 处 / ${quiz.questions.length} 题 / ` +
-      `${Object.keys(archetypes).length} 原型 / ${bands.length} 档 / ${Object.keys(pairStates).length} 状态提示`
+    `[gen-strings] 生成完成：界面文案 ${Object.keys(ui).length} 组 / 免责 ${Object.keys(disclaimers).length} 处 / ` +
+      `${quiz.questions.length} 题 / ${Object.keys(archetypes).length} 原型 / ${bands.length} 档 / ` +
+      `${Object.keys(pairStates).length} 状态提示`
   );
   console.log(`  - miniapp/shared/strings.js ${changed ? '(更新)' : '(无变化)'}`);
 }

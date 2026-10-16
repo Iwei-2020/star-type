@@ -1,0 +1,146 @@
+/* P-03 答题页 · 版式见《美术资产》§4 */
+
+page {
+  background-color: #1b1035;
+  background-image:
+    radial-gradient(110% 44% at 50% -8%, rgba(232, 200, 122, 0.12) 0%, rgba(232, 200, 122, 0) 62%),
+    linear-gradient(135deg, #1b1035 0%, #3a2a6b 100%);
+  background-repeat: no-repeat;
+}
+
+.p3 {
+  display: flex;
+  flex-direction: column;
+  padding-top: 40rpx;
+  padding-bottom: 32rpx;
+}
+
+/* 顶行：题号（左） / 上一题（右） */
+.p3__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56rpx;
+}
+
+.p3__progress {
+  font-size: 22rpx;
+  letter-spacing: 2rpx;
+  color: rgba(245, 239, 230, 0.62);
+}
+
+/* 热区 ≥ 88 × 88rpx（美术资产 §1 可点元素规范） */
+.p3__back {
+  display: flex;
+  align-items: center;
+  min-width: 88rpx;
+  height: 88rpx;
+  margin-top: -16rpx;
+  margin-bottom: -16rpx;
+  justify-content: flex-end;
+}
+
+.p3__back-ico {
+  width: 30rpx;
+  height: 30rpx;
+}
+
+.p3__back-text {
+  margin-left: 10rpx;
+  font-size: 22rpx;
+  color: rgba(232, 200, 122, 0.9);
+}
+
+/* 进度条 6rpx（美术资产 §4.2 ③） */
+.p3__track {
+  height: 6rpx;
+  margin-top: 20rpx;
+  border-radius: 999rpx;
+  background-color: rgba(245, 239, 230, 0.14);
+  overflow: hidden;
+}
+
+.p3__fill {
+  height: 100%;
+  border-radius: 999rpx;
+  background: linear-gradient(90deg, #e8c87a 0%, #d8b25f 100%);
+}
+
+.p3__prompt {
+  margin-top: 56rpx;
+  font-size: 38rpx;
+  font-weight: 600;
+  letter-spacing: 2rpx;
+  color: #f5efe6;
+}
+
+.p3__stem {
+  margin-top: 22rpx;
+  font-size: 25rpx;
+  line-height: 1.7;
+  color: rgba(245, 239, 230, 0.8);
+}
+
+/* 通栏选项：最小 96rpx、圆角 24rpx（美术资产 §4.2 ⑤） */
+.p3__options {
+  margin-top: 48rpx;
+}
+
+.p3__option {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 96rpx;
+  padding: 24rpx 28rpx;
+  border: 2rpx solid rgba(232, 200, 122, 0.22);
+  border-radius: 24rpx;
+  background-color: rgba(42, 27, 74, 0.55); /* --bg-sub 55% */
+}
+
+.p3__option + .p3__option {
+  margin-top: 24rpx;
+}
+
+/* 已选：金线点亮（只表达命中，不表达优劣——两端点等价，PRD 3.2） */
+.p3__option.is-on {
+  border-color: rgba(232, 200, 122, 0.85);
+  background-color: rgba(232, 200, 122, 0.12);
+}
+
+.p3__option-tag {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 44rpx;
+  height: 44rpx;
+  border: 2rpx solid rgba(232, 200, 122, 0.5);
+  border-radius: 50%;
+  font-size: 22rpx;
+  color: #e8c87a;
+}
+
+.p3__option.is-on .p3__option-tag {
+  border-color: #e8c87a;
+  background-color: rgba(232, 200, 122, 0.18);
+}
+
+.p3__option-text {
+  margin-left: 24rpx;
+  flex: 1;
+  font-size: 26rpx;
+  line-height: 1.55;
+  color: rgba(245, 239, 230, 0.9);
+}
+
+.p3__hint {
+  margin-top: 32rpx;
+  text-align: center;
+}
+
+.p3__foot {
+  width: 100%;
+  margin-top: auto;
+  padding-top: 40rpx;
+}

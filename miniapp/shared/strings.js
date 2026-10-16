@@ -1,11 +1,112 @@
 'use strict';
 
 // ─────────────────────────────────────────────────────────────
-// 本文件由 tools/gen-strings.js 从 4 份【内容叙事】资产机械提取生成。
+// 本文件由 tools/gen-strings.js 生成：叙事文案提取自 4 份【内容叙事】资产，
+// 界面静态文案合入生成器内集中声明的 UI_TEXT（见该文件顶部说明）。
 // 禁止手改：改动会在下一次生成时被覆盖，且 gen-strings.js --check 会失败。
-// 改动文案请改资产原文，然后重新运行 node tools/gen-strings.js。
+// 叙事文案改资产原文；界面文案改 tools/gen-strings.js 的 UI_TEXT，然后重新运行生成。
 // ─────────────────────────────────────────────────────────────
 module.exports = Object.freeze({
+  "ui": Object.freeze({
+    "home": Object.freeze({
+      "brand": "星语人格",
+      "brandSub": "好友同频测试",
+      "spec": "10 道题 · 约 3 分钟 · 无需注册",
+      "ctaStart": "开始测试",
+      "ctaPair": "已有邀请码 · 直接配对",
+      "ctaResume": "继续上次答题",
+      "tagline": "3 分钟完成一次人格映像测试，点亮独属于你的人格原型符号卡，再邀请好友生成一张\"同频图谱\"。"
+    }),
+    "guide": Object.freeze({
+      "title": "开始之前",
+      "subtitle": "三步看懂这次测试",
+      "steps": Object.freeze([
+        Object.freeze({
+          "no": "1",
+          "title": "回答 10 道题",
+          "desc": "凭第一感受二选一，没有对错，也不用纠结。"
+        }),
+        Object.freeze({
+          "no": "2",
+          "title": "生成人格映像卡",
+          "desc": "得到你的原型符号与特质解读。"
+        }),
+        Object.freeze({
+          "no": "3",
+          "title": "邀请好友配对",
+          "desc": "生成一张同频图谱，看你们的相处模式。"
+        })
+      ]),
+      "note": "预计用时：约 3 分钟",
+      "noteResume": "上次进度已保留",
+      "cta": "开始答题"
+    }),
+    "quiz": Object.freeze({
+      "progress": "第 {n} / {total} 题",
+      "back": "上一题",
+      "hint": "作答即进入下一题 · 可返回上一题修改",
+      "hintLast": "生成结果"
+    }),
+    "result": Object.freeze({
+      "ctaInvite": "邀请好友配对",
+      "ctaShare": "分享",
+      "loadingTitle": "正在生成你的人格映像",
+      "loadingSub": "星点正在聚合，请稍候",
+      "loadingCta": "生成中…",
+      "failTitle": "未能生成结果",
+      "failText": "网络似乎不太稳定，你的人格映像没有生成成功。可以重新试一次。",
+      "failCta": "重新生成",
+      "pairCodeLabel": "配对码",
+      "imageryLabel": "主导意象",
+      "relationLabel": "相处模式提示"
+    }),
+    "pair": Object.freeze({
+      "title": "同频图谱",
+      "roleSelf": "你的卡",
+      "roleInviter": "发起者",
+      "roleInvitee": "受邀者",
+      "pendingName": "待完成",
+      "waitText": "等待对方完成测试…",
+      "waitCta": "再次邀请",
+      "expiredTitle": "本次邀请已过期",
+      "expiredSub": "邀请有效期 7 天",
+      "expiredCta": "重新发起配对",
+      "markSame": "一致",
+      "markComp": "互补",
+      "bandPrefix": "相处模式：",
+      "shareCta": "分享图谱",
+      "switchCta": "换个好友配对",
+      "inputHint": "输入好友的 8 位配对码",
+      "inputPlaceholder": "8 位字母与数字",
+      "inputCta": "确认配对",
+      "inputInvalid": "配对码格式不正确，请核对后再试",
+      "inputAmbiguous": "配对码不含 I / L / O / 0 / 1 这几个易混字符"
+    }),
+    "share": Object.freeze({
+      "title": "分享给好友",
+      "subtitle": "邀请 TA 完成测试，一起看同频图谱",
+      "ctaInvite": "去邀请配对",
+      "ctaRetry": "再测一次",
+      "channels": Object.freeze([
+        Object.freeze({
+          "key": "friend",
+          "label": "抖音好友"
+        }),
+        Object.freeze({
+          "key": "group",
+          "label": "抖音群"
+        }),
+        Object.freeze({
+          "key": "save_image",
+          "label": "保存图片"
+        }),
+        Object.freeze({
+          "key": "copy_code",
+          "label": "复制配对码"
+        })
+      ])
+    })
+  }),
   "disclaimers": Object.freeze({
     "home": "本测试为趣味娱乐内容，结果依据你的主观作答生成，仅供娱乐与社交互动参考；不构成心理学专业测评、心理诊断或咨询建议，也不构成任何形式的命运、运势或未来推断。",
     "guide": "本测试为趣味娱乐内容，结果仅供娱乐参考；不构成心理学专业测评、心理诊断或咨询建议，也不构成任何形式的命运、运势或未来推断。",

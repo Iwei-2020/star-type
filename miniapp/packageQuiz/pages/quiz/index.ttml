@@ -1,2 +1,37 @@
-<!-- P-03 答题页 · 骨架占位：视觉还原留第二阶段（实施计划 §七） -->
-<view class="st-page">P-03 答题页</view>
+<!-- P-03 答题页 · 版式见《美术资产-全流程视觉P01-P06线稿说明》§4；题面与选项取自 strings.quiz，页面不写死任何字样 -->
+<view class="st-page p3">
+  <view class="p3__top">
+    <text class="p3__progress">{{progressText}}</text>
+    <view class="p3__back" tt:if="{{canGoBack}}" bindtap="onBack">
+      <view class="p3__back-ico st-sigil" style="{{backIconStyle}}"></view>
+      <text class="p3__back-text">{{backText}}</text>
+    </view>
+  </view>
+
+  <view class="p3__track">
+    <view class="p3__fill" style="width: {{progressPercent}}%;"></view>
+  </view>
+
+  <text class="p3__prompt">{{prompt}}</text>
+  <text class="p3__stem">{{stem}}</text>
+
+  <!-- 二选一：A / B 均为并列选项，命中态只表达「已选」，不暗示对错 -->
+  <view class="p3__options">
+    <view
+      class="p3__option {{item.selected ? 'is-on' : ''}}"
+      tt:for="{{options}}"
+      tt:key="id"
+      data-option="{{item.id}}"
+      bindtap="onOptionTap"
+    >
+      <view class="p3__option-tag"><text>{{item.id}}</text></view>
+      <text class="p3__option-text">{{item.text}}</text>
+    </view>
+  </view>
+
+  <text class="st-hint p3__hint">{{hint}}</text>
+
+  <view class="p3__foot">
+    <disclaimer scope="quiz" />
+  </view>
+</view>
