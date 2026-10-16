@@ -34,7 +34,7 @@ const path = require('path');
 const constants = require('../shared/constants.js');
 
 const ROOT = path.join(__dirname, '..');
-const DOCS = path.join(ROOT, '..');
+const DOCS = path.join(ROOT, 'doc');
 const OUT = path.join(ROOT, 'miniapp', 'shared', 'strings.js');
 const CHECK_ONLY = process.argv.includes('--check');
 

@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>星语人格 · 16 原型符号库</title>
+<style>
+  :root{
+    --bg:#1B1035; --bg-2:#2A1B4A; --gold:#E8C87A; --ivory:#F5EFE6; --violet:#C9B6FF;
+    --font-title:"LXGW WenKai","Songti SC",serif;
+    --font-body:"Source Han Sans SC","PingFang SC",-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#141029;font-family:var(--font-body);color:var(--ivory);padding:46px 40px 60px}
+  .board{max-width:1140px;margin:0 auto}
+  .head{padding-bottom:24px;border-bottom:1px solid rgba(232,200,122,.22);margin-bottom:26px}
+  .head h1{font-family:var(--font-title);font-size:26px;letter-spacing:.14em;font-weight:400}
+  .head .sub{font-size:13px;color:var(--violet);opacity:.85;padding-top:8px}
+  .spec{display:grid;grid-template-columns:repeat(2,1fr);gap:6px 32px;
+    padding-top:18px;font-size:12px;line-height:1.9;color:rgba(245,239,230,.72)}
+  .spec b{color:var(--gold);font-weight:400}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+  .cell{border-radius:18px;padding:16px 14px 15px;
+    background:linear-gradient(180deg,#2A1B4A 0%,#1B1035 100%);
+    border:1px solid rgba(232,200,122,.20);
+    display:flex;flex-direction:column;align-items:center}
+  .cell .idx{font-size:11px;letter-spacing:.16em;color:var(--gold);opacity:.85}
+  .cell .sym{width:130px;height:130px;margin:8px 0 4px}
+  .cell .name{font-family:var(--font-title);font-size:17px;letter-spacing:.1em}
+  .cell .imagery{font-size:11px;color:var(--violet);opacity:.78;letter-spacing:.04em;padding-top:3px}
+</style>
+</head>
+<body>
+<div class="board">
+  <div class="head">
+    <h1>星语人格 · 16 原型符号库</h1>
+    <div class="sub">《星语人格 · 好友同频测试》美术素材 · 纯线描 · 原创绘制</div>
+    <div class="spec">
+      <div><b>画布基准</b>：200 × 200 单位，导出 1× / 2× / 3× SVG 或 PNG</div>
+      <div><b>线宽</b>：描线 1.6，点缀 2–3</div>
+      <div><b>用色</b>：暖金 <b>#E8C87A</b> 描线；星芒淡紫 <b>#C9B6FF</b> 仅作点状点缀</div>
+      <div><b>风格</b>：纯线描，无填充色块、无渐变</div>
+      <div><b>代号规则</b>：D1-D2-D3-D4 端点代号，A 端在前（见 PRD 3.2）</div>
+      <div><b>禁止</b>：真实占卜牌完整版式、宗教性标识、吉凶 / 运势类符号</div>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <!-- 01 曜日型 -->
+    <div class="cell">
+      <div class="idx">01 · AAAA</div>
+      <svg class="sym" viewBox="0 0 200 200"><g stroke="#E8C87A" fill="none" stroke-width="1.6">
+        <circle cx="100" cy="100" r="34"/>
+        <circle cx="100" cy="100" r="47" stroke-dasharray="4 7" opacity=".7"/>
+        <polygon points="100,74 120,100 100,126 80,100" stroke-width="1.2"/>
+        <line x1="152" y1="100" x2="174" y2="100"/><line x1="48" y1="100" x2="26" y2="100"/>
+        <line x1="100" y1="48" x2="100" y2="26"/><line x1="100" y1="152" x2="100" y2="174"/>
+        <line x1="136.8" y1="63.2" x2="152.3" y2="47.7"/><line x1="63.2" y1="63.2" x2="47.7" y2="47.7"/>
+        <line x1="63.2" y1="136.8" x2="47.7" y2="152.3"/><line x1="136.8" y1="136.8" x2="152.3" y2="152.3"/>
+      </g></svg>
+      <div class="name">曜日型</div>
+      <div class="imagery">正午恒星</div>
+    </div>
+
+    <!-- 02 日珥型 -->
+    <div class="cell">
+      <div class="idx">02 · AAAB</div>
+      <svg class="sym" viewBox="0 0 200 200"><g stroke="#E8C87A" fill="none" stroke-width="1.6">
+        <circle cx="100" cy="112" r="40"/>
+        <path d="M76 80c3-24 12-38 24-38s21 14 24 38"/>
+        <path d="M56 96c-2-20 5-34 15-40" opacity=".8"/>
+        <path d="M144 96c2-20-5-34-15-40" opacity=".8"/>
+      </g><circle cx="100" cy="38" r="3" fill="#E8C87A" stroke="none"/></svg>
+      <div class="name">日珥型</div>
+      <div class="imagery">恒星烈焰边缘</div>
+    </div>
+
+    <!-- 03 彗尾型 -->
+    <div class="cell">
+      <div class="idx">03 · AABA</div>
+      <svg class="sym" viewBox="0 0 200 200"><g stroke="#E8C87A" fill="none" stroke-width="1.6">
+        <circle cx="66" cy="66" r="13"/>
+        <path d="M78 74c24 18 44 38 64 62" opacity=".9"/>
+        <path d="M84 62c30 12 52 32 74 58" opacity=".6"/>
+        <path d="M62 80c20 24 44 44 66 76" opacity=".5"/>
+      </g>
+      <circle cx="150" cy="150" r="2.6" fill="#C9B6FF" stroke="none"/>
+      <circle cx="44" cy="46" r="2" fill="#E8C87A" stroke="none"/></svg>
+      <div class="name">彗尾型</div>
+      <div class="imagery">掠过的彗星轨迹</div>
+    </div>
+
+    <!-- 04 极光型 -->
+    <div class="cell">
+      <div class="idx">04 · AABB</div>
+      <svg class="sym" viewBox="0 0 200 200"><g stroke="#E8C87A" fill="none" stroke-width="1.6">
+        <path d="M18 74C48 50 78 60 108 76S158 92 182 74"/>
+        <path d="M18 100C48 76 78 86 108 102S158 118 182 100" opacity=".72"/>
+        <path d="M18 126C48 102 78 112 108 128S158 144 182 126" opacity=".5"/>
+      </g>
+      <circle cx="56" cy="44" r="2.2" fill="#C9B6FF" stroke="none"/>
+      <circle cx="146" cy="44" r="1.8" fill="#E8C87A" stroke="none"/></svg>
+      <div class="name">极光型</div>
+      <div class="imagery">高空光帘</div>
+    </div>
+
+    <!-- 05 晨星型 -->
+    <div class="cell">
+      <div class="idx">05 · ABAA</div>
+      <svg class="sym" viewBox="0 0 200 200"><g stroke="#E8C87A" fill="none" stroke-width="1.6">
+        <path d="M100 42l8 34 34 8-34 8-8 34-8-34-34-8 34-8z"/>
+        <path d="M20 148c26 0 44-16 80-16s54 16 80 16" opacity=".55"/>
+      </g><circle cx="100" cy="84" r="3" fill="#C9B6FF" stroke="none"/></svg>
+      <div class="name">晨星型</div>
+      <div class="imagery">破晓启明星</div>
+    </div>
+
+    <!-- 06 双星型 -->
+    <div class="cell">
+      <div class="idx">06 · ABAB</div>
+      <svg class="sym" viewBox="0 0 200 200"><g stroke="#E8C87A" fill="none" stroke-width="1.6">
+        <ellipse cx="100" cy="100" rx="56" ry="36" stroke-dasharray="4 8" opacity=".55"/>
+        <circle cx="72" cy="84" r="18"/>
+        <circle cx="128" cy="116" r="13"/>
+      </g>
+      <circle cx="72" cy="84" r="3.4" fill="#E8C87A" stroke="none"/>
+      <circle cx="128" cy="116" r="2.6" fill="#E8C87A" stroke="none"/></svg>
+      <div class="name">双星型</div>
+      <div class="imagery">相互环绕的双星</div>
+    </div>
+
+    <!-- 07 潮汐型 -->
+    <div class="cell">
+      <div class="idx">07 · ABBA</div>
+      <svg class="sym" viewBox="0 0 200 200"><g stroke="#E8C87A" fill="none" stroke-width="1.6">
+        <path d="M20 84c13-12 27-12 40 0s27 12 40 0 27-12 40 0 27 12 40 0"/>
+        <path d="M20 112c13-12 27-12 40 0s27 12 40 0 27-12 40 0 27 12 40 0" opacity=".72"/>
+        <path d="M20 140c13-12 27-12 40 0s27 12 40 0 27-12 40 0 27 12 40 0" opacity=".48"/>
+      </g></svg>
+      <div class="name">潮汐型</div>
+      <div class="imagery">被牵引的海面</div>
+    </div>
+
+    <!-- 08 深海型 -->
+    <div class="cell">
+      <div class="idx">08 · ABBB</div>
+      <svg class="sym" viewBox="0 0 200 200"><g stroke="#E8C87A" fill="none" stroke-width="1.6">
+        <circle cx="100" cy="78" r="14"/>
+        <path d="M30 98c0 42 31 66 70 66s70-24 70-66" opacity=".85"/>
+        <path d="M54 98c0 28 20 46 46 46s46-18 46-46" opacity=".6"/>
+        <path d="M76 98c0 14 11 24 24 24s24-10 24-24" opacity=".4"/>
+      </g><circle cx="100" cy="142" r="3.2" fill="#C9B6FF" stroke="none"/></svg>
+      <div class="name">深海型</div>
+      <div class="imagery">深水中的暗流</div>
+    </div>
+
+    <!-- 09 星芒型 -->
+    <div class="cell">
+      <div class="idx">09 · BAAA</div>
+      <svg class="sym" viewBox="0 0 200 200"><g stroke="#E8C87A" fill="none" stroke-width="1.6">
+        <circle cx="100" cy="100" r="72" stroke-dasharray="3 11" opacity=".32"/>
+        <path d="M100 40l9 51 51 9-51 9-9 51-9-51-51-9 51-9z"/>
+        <path d="M100 40l9 51 51 9-51 9-9 51-9-51-51-9 51-9z" transform="rotate(45 100 100)" opacity=".62"/>
+      </g><circle cx="100" cy="100" r="3.4" fill="#C9B6FF" stroke="none"/></svg>
+      <div class="name">星芒型</div>
+      <div class="imagery">单颗高亮恒星</div>
+    </div>
+
+    <!-- 10 星雾型 -->
+    <div class="cell">
+      <div class="idx">10 · BAAB</div>
+      <svg class="sym" viewBox="0 0 200 200"><g stroke="#E8C87A" fill="none" stroke-width="1.6">
+        <circle cx="100" cy="100" r="60" stroke-dasharray="2 12" opacity=".30"/>
+        <circle cx="100" cy="100" r="40" stroke-dasharray="2 10" opacity=".22"/>
+      </g><g fill="#E8C87A" stroke="none">
+        <circle cx="74" cy="86" r="6" opacity=".9"/><circle cx="120" cy="78" r="5" opacity=".85"/>
+        <circle cx="104" cy="108" r="7" opacity=".9"/><circle cx="70" cy="118" r="4.4" opacity=".75"/>
+        <circle cx="132" cy="114" r="5" opacity=".8"/><circle cx="100" cy="134" r="3.6" opacity=".7"/>
+        <circle cx="86" cy="62" r="3.2" opacity=".6"/><circle cx="138" cy="94" r="3.2" opacity=".6"/>
+        <circle cx="58" cy="100" r="2.6" opacity=".5"/>
+      </g></svg>
+      <div class="name">星雾型</div>
+      <div class="imagery">弥漫的星云薄雾</div>
+    </div>
+
+    <!-- 11 月晕型 -->
+    <div class="cell">
+      <div class="idx">11 · BABA</div>
+      <svg class="sym" viewBox="0 0 200 200"><g stroke="#E8C87A" fill="none" stroke-width="1.6">
+        <circle cx="100" cy="100" r="30"/>
+        <circle cx="100" cy="100" r="52" stroke-dasharray="4 8" opacity=".68"/>
+        <circle cx="100" cy="100" r="72" stroke-dasharray="2 12" opacity=".38"/>
+      </g><circle cx="100" cy="70" r="3" fill="#C9B6FF" stroke="none"/></svg>
+      <div class="name">月晕型</div>
+      <div class="imagery">安静月轮光晕</div>
+    </div>
+
+    <!-- 12 星砂型 -->
+    <div class="cell">
+      <div class="idx">12 · BABB</div>
+      <svg class="sym" viewBox="0 0 200 200"><g stroke="#E8C87A" fill="none" stroke-width="1.6">
+        <path d="M26 152c0-48 32-86 74-86s74 38 74 86" stroke-dasharray="3 11" opacity=".34"/>
+      </g><g fill="#E8C87A" stroke="none">
+        <circle cx="58" cy="140" r="2.8"/><circle cx="74" cy="130" r="2.4"/><circle cx="90" cy="138" r="3"/>
+        <circle cx="106" cy="128" r="2.4"/><circle cx="122" cy="136" r="2.8"/><circle cx="138" cy="129" r="2.4"/>
+        <circle cx="100" cy="112" r="3.4"/><circle cx="82" cy="104" r="2.6"/><circle cx="120" cy="102" r="2.6"/>
+        <circle cx="64" cy="120" r="2.2" opacity=".8"/><circle cx="134" cy="118" r="2.2" opacity=".8"/>
+      </g></svg>
+      <div class="name">星砂型</div>
+      <div class="imagery">缓慢漂移的星尘</div>
+    </div>
+
+    <!-- 13 极星型 -->
+    <div class="cell">
+      <div class="idx">13 · BBAA</div>
+      <svg class="sym" viewBox="0 0 200 200"><g stroke="#E8C87A" fill="none" stroke-width="1.6">
+        <circle cx="100" cy="100" r="70" stroke-dasharray="3 11" opacity=".38"/>
+        <circle cx="100" cy="100" r="46" stroke-dasharray="2 9" opacity=".5"/>
+        <path d="M100 62l6 32 32 6-32 6-6 32-6-32-32-6 32-6z"/>
+      </g><circle cx="100" cy="100" r="3" fill="#C9B6FF" stroke="none"/></svg>
+      <div class="name">极星型</div>
+      <div class="imagery">恒定的坐标星</div>
+    </div>
+
+    <!-- 14 萤火型 -->
+    <div class="cell">
+      <div class="idx">14 · BBAB</div>
+      <svg class="sym" viewBox="0 0 200 200"><g stroke="#E8C87A" fill="none" stroke-width="1.6">
+        <circle cx="100" cy="100" r="20" opacity=".45"/>
+        <path d="M94 82C84 64 72 56 56 56" opacity=".82"/>
+        <path d="M106 82C116 64 128 56 144 56" opacity=".82"/>
+        <path d="M100 120C96 136 92 148 86 160" opacity=".6"/>
+      </g>
+      <circle cx="100" cy="100" r="6" fill="#E8C87A" stroke="none"/>
+      <circle cx="70" cy="134" r="3.2" fill="#E8C87A" stroke="none" opacity=".8"/>
+      <circle cx="130" cy="142" r="2.6" fill="#E8C87A" stroke="none" opacity=".7"/></svg>
+      <div class="name">萤火型</div>
+      <div class="imagery">深空里的微光</div>
+    </div>
+
+    <!-- 15 静湖型 -->
+    <div class="cell">
+      <div class="idx">15 · BBBA</div>
+      <svg class="sym" viewBox="0 0 200 200"><g stroke="#E8C87A" fill="none" stroke-width="1.6">
+        <circle cx="100" cy="70" r="13" opacity=".85"/>
+        <circle cx="100" cy="70" r="20" stroke-dasharray="3 7" opacity=".4"/>
+        <path d="M26 122h148" opacity=".9"/>
+        <path d="M26 136h148" opacity=".5"/>
+        <path d="M40 106v-9M62 108v-13M84 105v-8M118 108v-12M140 106v-9" opacity=".42"/>
+      </g>
+      <circle cx="70" cy="118" r="2.4" fill="#E8C87A" stroke="none" opacity=".8"/>
+      <circle cx="130" cy="119" r="2" fill="#E8C87A" stroke="none" opacity=".7"/></svg>
+      <div class="name">静湖型</div>
+      <div class="imagery">倒映星空的湖面</div>
+    </div>
+
+    <!-- 16 夜幕型 -->
+    <div class="cell">
+      <div class="idx">16 · BBBB</div>
+      <svg class="sym" viewBox="0 0 200 200"><g stroke="#E8C87A" fill="none" stroke-width="1.6">
+        <path d="M24 150c0-58 34-102 76-102s76 44 76 102" opacity=".7"/>
+        <path d="M50 150c0-42 22-74 50-74s50 32 50 74" stroke-dasharray="3 9" opacity=".4"/>
+      </g><g fill="#E8C87A" stroke="none">
+        <circle cx="72" cy="108" r="2.6"/><circle cx="100" cy="88" r="3.2"/><circle cx="128" cy="110" r="2.4"/>
+        <circle cx="86" cy="132" r="2.2" opacity=".8"/><circle cx="116" cy="134" r="2.6" opacity=".8"/>
+      </g><circle cx="100" cy="88" r="6.4" fill="#C9B6FF" stroke="none" opacity=".45"/></svg>
+      <div class="name">夜幕型</div>
+      <div class="imagery">静谧的深夜穹顶</div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

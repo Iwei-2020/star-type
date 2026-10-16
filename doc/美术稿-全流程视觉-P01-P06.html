@@ -1,0 +1,639 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>星语人格 · 美术稿（结果卡 / 配对图谱）</title>
+<style>
+  :root{
+    --bg-deep:#1B1035;
+    --bg-sub:#2A1B4A;
+    --gold:#E8C87A;
+    --ivory:#F5EFE6;
+    --violet:#C9B6FF;
+    --line:rgba(232,200,122,.55);
+    --card:rgba(42,27,74,.72);
+    --font-title:"LXGW WenKai","Songti SC","STSong",serif;
+    --font-body:"PingFang SC","Source Han Sans SC","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#0E0820}
+  body{
+    font-family:var(--font-body);
+    color:var(--ivory);
+    padding:48px 40px 64px;
+    display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start;
+  }
+  /* 画板：750rpx 基准，1rpx = 0.5px → 375px 宽 */
+  .board{display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start}
+  .frame{display:flex;flex-direction:column;gap:14px}
+  .frame-title{
+    font-size:13px;letter-spacing:.06em;color:var(--violet);
+    font-weight:600;opacity:.85;
+  }
+  .phone{
+    width:375px;border-radius:28px;padding:24px 24px 26px;
+    background:
+      radial-gradient(120% 60% at 50% 0%,rgba(201,182,255,.14),transparent 60%),
+      linear-gradient(135deg,var(--bg-deep) 0%,#3A2A6B 100%);
+    border:1px solid rgba(201,182,255,.20);
+    box-shadow:0 18px 48px rgba(0,0,0,.55);
+    position:relative;overflow:hidden;
+  }
+  .phone::before{ /* 星点 */
+    content:"";position:absolute;inset:0;pointer-events:none;opacity:.7;
+    background-image:
+      radial-gradient(1.4px 1.4px at 18% 12%,rgba(255,255,255,.55),transparent),
+      radial-gradient(1.2px 1.2px at 72% 8%,rgba(255,255,255,.42),transparent),
+      radial-gradient(1.6px 1.6px at 84% 34%,rgba(201,182,255,.6),transparent),
+      radial-gradient(1.2px 1.2px at 32% 62%,rgba(255,255,255,.38),transparent),
+      radial-gradient(1.4px 1.4px at 62% 78%,rgba(255,255,255,.30),transparent),
+      radial-gradient(1.2px 1.2px at 12% 88%,rgba(201,182,255,.42),transparent);
+  }
+  .phone > *{position:relative;z-index:1}
+
+  .card{
+    border-radius:16px;background:var(--card);
+    border:1px solid rgba(232,200,122,.28);
+    overflow:hidden;
+  }
+  /* ① 符号区 */
+  .symbol-zone{
+    height:210px;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:6px;position:relative;
+    background:
+      radial-gradient(60% 60% at 50% 42%,rgba(201,182,255,.20),transparent 70%),
+      linear-gradient(180deg,rgba(27,16,53,.0),rgba(27,16,53,.55));
+  }
+  .sigil{width:132px;height:132px;display:block}
+  .archetype{
+    font-family:var(--font-title);font-size:36px;letter-spacing:.10em;
+    color:var(--ivory);text-shadow:0 0 18px rgba(232,200,122,.45);
+  }
+  .code{font-size:14px;letter-spacing:.22em;color:var(--gold);opacity:.6}
+  /* ②–⑤ 正文区 */
+  .body-zone{padding:16px 18px 8px;display:flex;flex-direction:column;gap:10px}
+  .imagery{
+    font-family:var(--font-title);font-size:16px;color:var(--gold);letter-spacing:.08em;
+    display:flex;align-items:center;gap:8px;
+  }
+  .imagery::before{content:"";width:14px;height:1px;background:var(--line)}
+  .summary{font-size:13px;line-height:1.75;color:rgba(245,239,230,.92)}
+  .traits{list-style:none;display:flex;flex-direction:column;gap:7px}
+  .traits li{
+    font-size:12.5px;line-height:1.7;color:rgba(245,239,230,.80);
+    padding-left:14px;position:relative;
+  }
+  .traits li::before{
+    content:"";position:absolute;left:0;top:8px;width:5px;height:5px;border-radius:50%;
+    background:var(--gold);opacity:.75;
+  }
+  .tip{
+    font-size:12.5px;line-height:1.7;color:rgba(245,239,230,.88);
+    background:rgba(42,27,74,.55);border-left:2px solid var(--gold);
+    border-radius:6px;padding:9px 11px;margin-top:2px;
+  }
+  /* ⑥ 操作区 */
+  .actions{display:flex;gap:10px;padding:14px 18px 8px}
+  .btn{
+    flex:1;height:44px;border-radius:999px;border:none;
+    font-family:var(--font-body);font-size:13.5px;letter-spacing:.04em;
+    background:linear-gradient(135deg,#F2D89B,#E8C87A);color:#241634;font-weight:600;
+  }
+  .btn.ghost{
+    background:transparent;color:var(--gold);
+    border:1px solid rgba(232,200,122,.6);font-weight:500;
+  }
+  /* ⑦ 免责 */
+  .disclaimer{
+    font-size:12px;line-height:1.6;color:rgba(245,239,230,.48);
+    padding:2px 18px 14px;text-align:center;
+  }
+  /* 编号角标 */
+  .badge{
+    position:absolute;width:17px;height:17px;border-radius:50%;
+    border:1px solid rgba(232,200,122,.65);color:var(--gold);
+    font-size:9.5px;line-height:16px;text-align:center;
+    background:rgba(27,16,53,.75);z-index:5;
+  }
+  .rel{position:relative}
+
+  /* 方形分享卡 */
+  .square{width:375px;height:375px;padding:0}
+  .square .card{border-radius:20px;height:100%;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:9px;padding:26px 24px;text-align:center}
+  .square .sigil{width:104px;height:104px}
+  .sq-name{font-family:var(--font-title);font-size:28px;letter-spacing:.12em;color:var(--ivory)}
+  .sq-imagery{font-family:var(--font-title);font-size:14px;color:var(--gold);letter-spacing:.1em}
+  .sq-summary{font-size:12px;line-height:1.7;color:rgba(245,239,230,.78);max-width:260px}
+  .sq-foot{
+    margin-top:8px;display:flex;flex-direction:column;align-items:center;gap:5px;
+  }
+  .pair-code{
+    font-size:11px;letter-spacing:.16em;color:var(--violet);
+    border:1px dashed rgba(201,182,255,.5);border-radius:999px;padding:4px 14px;
+  }
+  .sq-note{font-size:10px;color:rgba(245,239,230,.5)}
+
+  /* 配对图谱 */
+  .map-head{font-family:var(--font-title);font-size:19px;letter-spacing:.14em;
+    text-align:center;color:var(--ivory);padding:2px 0 12px}
+  .duo{display:flex;align-items:center;justify-content:center;gap:12px;padding:0 18px 14px}
+  .thumb{
+    width:120px;border-radius:10px;padding:10px 6px;text-align:center;
+    background:rgba(27,16,53,.5);border:1px solid rgba(232,200,122,.30);
+    display:flex;flex-direction:column;align-items:center;gap:5px;
+  }
+  .thumb .sigil{width:44px;height:44px}
+  .thumb .tname{font-family:var(--font-title);font-size:13px;color:var(--ivory)}
+  .thumb .tlabel{font-size:9px;letter-spacing:.12em;color:var(--gold);opacity:.72}
+  .link{color:var(--gold);font-size:16px;opacity:.85}
+  .thumb.waiting{border-style:dashed;border-color:rgba(201,182,255,.45)}
+  .thumb.waiting .sigil{opacity:.35}
+
+  .bands{padding:0 18px;display:flex;flex-direction:column;gap:0}
+  .band{display:grid;grid-template-columns:52px 26px 1fr 26px 40px;align-items:center;
+    gap:6px;height:44px;border-bottom:1px solid rgba(232,200,122,.14)}
+  .band:last-child{border-bottom:none}
+  .dim{font-size:10.5px;color:rgba(245,239,230,.62);letter-spacing:.02em}
+  .pole{font-size:10.5px;color:rgba(245,239,230,.85);text-align:center}
+  .track{position:relative;height:16px}
+  .track::before{content:"";position:absolute;left:0;right:0;top:7px;height:1px;
+    background:rgba(232,200,122,.30)}
+  .dot{position:absolute;top:3px;width:10px;height:10px;border-radius:50%;
+    background:var(--gold);box-shadow:0 0 8px rgba(232,200,122,.75)}
+  .dot.at-a{left:2px}
+  .dot.at-b{right:2px}
+  .track.merged::after{content:"";position:absolute;left:-3px;top:-2px;width:20px;height:20px;
+    border-radius:50%;box-shadow:0 0 14px 5px rgba(232,200,122,.35)}
+  .mark{font-size:10px;text-align:center;color:var(--gold);letter-spacing:.06em}
+  .mark.same{color:var(--gold)}
+  .mark.comp{color:var(--violet)}
+
+  .result-block{padding:14px 18px 4px;display:flex;align-items:baseline;gap:10px;justify-content:center}
+  .pct{font-family:var(--font-title);font-size:32px;color:var(--ivory);
+    text-shadow:0 0 16px rgba(232,200,122,.4)}
+  .pct small{font-size:15px;opacity:.8}
+  .band-label{font-size:12px;color:var(--gold);letter-spacing:.08em}
+  .state-box{
+    margin:0 18px;border-radius:10px;padding:16px 14px;text-align:center;
+    background:rgba(42,27,74,.55);border:1px dashed rgba(201,182,255,.40);
+    display:flex;flex-direction:column;align-items:center;gap:10px;
+  }
+  .state-text{font-size:12.5px;color:rgba(245,239,230,.85);line-height:1.6}
+  .state-text b{color:var(--gold);font-weight:600}
+  .state-sub{font-size:10.5px;color:rgba(245,239,230,.52)}
+  .btn.small{height:38px;font-size:12.5px;flex:none;padding:0 22px}
+
+  .legend{display:flex;gap:16px;font-size:11px;color:rgba(245,239,230,.6);margin-top:10px}
+  .legend i{display:inline-block;width:9px;height:9px;border-radius:50%;
+    background:var(--gold);margin-right:5px;box-shadow:0 0 6px rgba(232,200,122,.7)}
+  /* 首页 P-01 */
+  .home{display:flex;flex-direction:column;align-items:center;text-align:center;gap:13px;padding:8px 12px 0}
+  .brand{font-family:var(--font-title);font-size:30px;letter-spacing:.18em;color:var(--ivory);
+    text-shadow:0 0 22px rgba(232,200,122,.45)}
+  .brand-sub{font-size:11px;letter-spacing:.34em;color:var(--gold);opacity:.8;margin-top:-8px}
+  .home-sigil{width:164px;height:164px;margin:2px 0 0}
+  .home-tagline{font-size:12.5px;line-height:1.85;color:rgba(245,239,230,.82);max-width:302px}
+  .home-meta{font-size:10.5px;letter-spacing:.1em;color:var(--violet);opacity:.85;
+    border:1px dashed rgba(201,182,255,.45);border-radius:999px;padding:5px 15px}
+  .home-cta{width:100%;padding:4px 0 0;display:flex;flex-direction:column;gap:10px}
+  .home-cta .btn{width:100%;height:46px}
+
+  /* 引导页 P-02 */
+  .guide-head{font-family:var(--font-title);font-size:19px;letter-spacing:.14em;
+    text-align:center;color:var(--ivory);padding:6px 0 4px}
+  .guide-sub{text-align:center;font-size:11px;color:var(--violet);opacity:.8;padding-bottom:14px}
+  .steps{padding:0 18px;display:flex;flex-direction:column;gap:10px}
+  .step{display:flex;gap:11px;align-items:flex-start;background:rgba(42,27,74,.55);
+    border:1px solid rgba(232,200,122,.22);border-radius:12px;padding:12px 13px}
+  .step .no{flex:none;width:22px;height:22px;border-radius:50%;border:1px solid var(--gold);
+    color:var(--gold);font-size:11px;line-height:20px;text-align:center}
+  .step .txt{font-size:12px;line-height:1.6;color:rgba(245,239,230,.85)}
+  .step .txt b{display:block;color:var(--ivory);font-size:12.5px;font-weight:600;margin-bottom:2px}
+  .guide-note{text-align:center;font-size:10.5px;color:rgba(245,239,230,.6);
+    padding:14px 18px 0;line-height:1.75}
+
+  /* 答题页 P-03 */
+  .quiz-top{padding:2px 18px 12px}
+  .progress-row{display:flex;justify-content:space-between;align-items:center;
+    font-size:11px;color:rgba(245,239,230,.72);margin-bottom:7px}
+  .progress-row .back{color:var(--gold);opacity:.9}
+  .progress-bar{height:3px;border-radius:2px;background:rgba(232,200,122,.18);overflow:hidden}
+  .progress-bar i{display:block;height:100%;background:linear-gradient(90deg,#F2D89B,#E8C87A);
+    box-shadow:0 0 8px rgba(232,200,122,.6)}
+  .quiz-q{font-family:var(--font-title);font-size:19px;line-height:1.6;color:var(--ivory);
+    padding:6px 18px 0}
+  .quiz-scene{font-size:12.5px;line-height:1.7;color:rgba(245,239,230,.72);padding:9px 18px 16px}
+  .options{padding:0 18px;display:flex;flex-direction:column;gap:10px}
+  .option{width:100%;text-align:left;font-family:var(--font-body);font-size:12.5px;line-height:1.65;
+    color:rgba(245,239,230,.92);background:rgba(42,27,74,.6);border-radius:12px;
+    border:1px solid rgba(232,200,122,.22);padding:14px 15px;display:flex;gap:10px;align-items:flex-start}
+  .option .tag{flex:none;width:20px;height:20px;border-radius:50%;
+    border:1px solid rgba(232,200,122,.55);color:var(--gold);font-size:11px;
+    line-height:18px;text-align:center}
+  .option.selected{border-color:var(--gold);background:rgba(232,200,122,.13);
+    box-shadow:0 0 14px rgba(232,200,122,.22)}
+  .option.selected .tag{background:var(--gold);color:#241634;border-color:var(--gold);font-weight:700}
+  .quiz-hint{text-align:center;font-size:10px;color:rgba(245,239,230,.5);padding:14px 18px 0}
+  /* 分享弹窗 P-06 */
+  .modal-bg{position:absolute;inset:0;border-radius:28px;background:rgba(14,8,32,.66);z-index:3}
+  .sheet{position:absolute;left:0;right:0;bottom:0;z-index:4;
+    border-radius:22px 22px 26px 26px;
+    background:linear-gradient(180deg,#2A1B4A 0%,#1B1035 100%);
+    border-top:1px solid rgba(232,200,122,.35);
+    box-shadow:0 -14px 34px rgba(0,0,0,.5);
+    padding:16px 18px 18px}
+  .sheet-title{font-family:var(--font-title);font-size:19px;letter-spacing:.12em;
+    text-align:center;color:var(--ivory)}
+  .sheet-sub{text-align:center;font-size:11px;color:var(--violet);opacity:.82;margin-top:5px}
+  .share-top{display:flex;gap:14px;align-items:center;padding:16px 0 4px}
+  .preview{flex:none;width:112px;height:112px;border-radius:12px;
+    background:linear-gradient(135deg,#1B1035 0%,#3A2A6B 100%);
+    border:1px solid rgba(232,200,122,.38);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+  .preview .sigil{width:36px;height:36px}
+  .preview .pname{font-family:var(--font-title);font-size:13px;color:var(--ivory);letter-spacing:.08em}
+  .preview .pnote{font-size:8.5px;color:rgba(245,239,230,.52)}
+  .share-grid{flex:1;display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+  .share-item{display:flex;align-items:center;gap:8px;font-size:11px;
+    color:rgba(245,239,230,.85);background:rgba(27,16,53,.5);
+    border:1px solid rgba(232,200,122,.20);border-radius:10px;padding:8px 10px}
+  .share-icon{flex:none;width:26px;height:26px;border-radius:50%;
+    background:rgba(232,200,122,.12);border:1px solid rgba(232,200,122,.45);
+    display:flex;align-items:center;justify-content:center}
+  .sheet-actions{display:flex;gap:10px;padding:14px 0 0}
+  .sheet-actions .btn{height:42px;font-size:12.5px}
+  .sheet-disclaimer{text-align:center;font-size:12px;color:rgba(245,239,230,.5);padding-top:12px}
+
+  /* 结果卡状态稿 P-04（计算中 / 计算失败） */
+  .skel{display:block;height:9px;border-radius:5px;margin:7px 0;
+    background:linear-gradient(90deg,rgba(245,239,230,.10),rgba(245,239,230,.24),rgba(245,239,230,.10))}
+  .calc-note{text-align:center;font-size:11px;line-height:1.9;color:var(--gold);
+    opacity:.85;padding-top:16px}
+  .fail-title{font-family:var(--font-title);font-size:17px;color:var(--ivory);
+    letter-spacing:.08em;padding-bottom:6px}
+</style>
+</head>
+<body>
+<div class="board">
+
+  <!-- P-01 首页 ------------------------------------------------------ -->
+  <section class="frame">
+    <div class="frame-title">P-01 首页</div>
+    <div class="phone">
+      <div class="home">
+        <div class="brand">星语人格</div>
+        <div class="brand-sub">好友同频测试</div>
+        <svg class="home-sigil" viewBox="0 0 200 200"><g stroke="#E8C87A" fill="none" stroke-width="1.4">
+          <circle cx="100" cy="100" r="68" stroke-dasharray="3 9" opacity=".5"/>
+          <circle cx="100" cy="100" r="46" opacity=".85"/>
+          <polygon points="100,58 136,100 100,142 64,100" stroke-width="1.2"/>
+          <line x1="100" y1="32" x2="100" y2="54"/>
+          <line x1="168" y1="100" x2="146" y2="100" stroke="#C9B6FF"/>
+          <line x1="32" y1="100" x2="54" y2="100" stroke="#C9B6FF"/>
+          <line x1="100" y1="168" x2="100" y2="146"/>
+          <circle cx="168" cy="100" r="3.2" fill="#C9B6FF" stroke="none"/>
+          <circle cx="32" cy="100" r="3.2" fill="#C9B6FF" stroke="none"/>
+          <circle cx="100" cy="32" r="2.4" fill="#E8C87A" stroke="none"/>
+        </g></svg>
+        <p class="home-tagline">3 分钟完成一次人格映像测试，点亮独属于你的人格原型符号卡，再邀请好友生成一张"同频图谱"。</p>
+        <div class="home-meta">10 道题 · 约 3 分钟 · 无需注册</div>
+        <div class="home-cta">
+          <button class="btn">开始测试</button>
+          <button class="btn ghost">已有邀请码 · 直接配对</button>
+        </div>
+      </div>
+      <div class="disclaimer" style="padding-top:16px">本测试为趣味娱乐内容，结果依据你的主观作答生成，仅供娱乐与社交互动参考；不构成心理学专业测评、心理诊断或咨询建议，也不构成任何形式的命运、运势或未来推断。</div>
+    </div>
+  </section>
+
+  <!-- P-02 测试引导页 -------------------------------------------------- -->
+  <section class="frame">
+    <div class="frame-title">P-02 测试引导页</div>
+    <div class="phone">
+      <div class="guide-head">开始之前</div>
+      <div class="guide-sub">三步看懂这次测试</div>
+      <div class="steps">
+        <div class="step"><span class="no">1</span><span class="txt"><b>回答 10 道题</b>凭第一感受二选一，没有对错，也不用纠结。</span></div>
+        <div class="step"><span class="no">2</span><span class="txt"><b>生成人格映像卡</b>得到你的原型符号与特质解读。</span></div>
+        <div class="step"><span class="no">3</span><span class="txt"><b>邀请好友配对</b>生成一张同频图谱，看你们的相处模式。</span></div>
+      </div>
+      <div class="guide-note">预计用时：约 3 分钟<br>中途退出可继续上次进度</div>
+      <div class="actions" style="padding:14px 18px 0"><button class="btn">开始答题</button></div>
+      <div class="disclaimer" style="padding-top:14px">本测试为趣味娱乐内容，结果仅供娱乐参考；不构成心理学专业测评、心理诊断或咨询建议，也不构成任何形式的命运、运势或未来推断。</div>
+    </div>
+  </section>
+
+  <!-- P-03 答题页 ----------------------------------------------------- -->
+  <section class="frame">
+    <div class="frame-title">P-03 答题页</div>
+    <div class="phone">
+      <div class="quiz-top">
+        <div class="progress-row"><span>第 3 / 10 题</span><span class="back">← 上一题</span></div>
+        <div class="progress-bar"><i style="width:30%"></i></div>
+      </div>
+      <div class="quiz-q">下面哪种情况更接近你的通常状态？</div>
+      <div class="quiz-scene">面对一个需要做决定的机会（比如换方向、报名一件事）。</div>
+      <div class="options">
+        <button class="option selected"><span class="tag">A</span><span>先比较实际的利弊与可行性，再决定。</span></button>
+        <button class="option"><span class="tag">B</span><span>先感觉这件事是不是自己想要的。</span></button>
+      </div>
+      <div class="quiz-hint">作答即进入下一题 · 可返回上一题修改</div>
+      <div class="disclaimer">请凭第一感受作答，结果仅供娱乐参考。</div>
+    </div>
+  </section>
+
+  <!-- ① 结果卡 · 竖版主卡 --------------------------------------------- -->
+  <section class="frame">
+    <div class="frame-title">P-04 结果卡 · 竖版主卡（结果页）</div>
+    <div class="phone">
+      <div class="card">
+        <div class="symbol-zone rel">
+          <span class="badge" style="left:10px;top:10px">1</span>
+          <svg class="sigil" viewBox="0 0 200 200"><g stroke="#E8C87A" fill="none" stroke-width="1.6">
+            <circle cx="100" cy="100" r="34"/>
+            <circle cx="100" cy="100" r="47" stroke-dasharray="4 7" opacity=".7"/>
+            <polygon points="100,74 120,100 100,126 80,100" stroke-width="1.2"/>
+            <line x1="152" y1="100" x2="174" y2="100"/><line x1="48" y1="100" x2="26" y2="100"/>
+            <line x1="100" y1="48" x2="100" y2="26"/><line x1="100" y1="152" x2="100" y2="174"/>
+            <line x1="136.8" y1="63.2" x2="152.3" y2="47.7"/><line x1="63.2" y1="63.2" x2="47.7" y2="47.7"/>
+            <line x1="63.2" y1="136.8" x2="47.7" y2="152.3"/><line x1="136.8" y1="136.8" x2="152.3" y2="152.3"/>
+          </g></svg>
+          <div class="archetype">曜日型</div>
+          <div class="code">AAAA</div>
+        </div>
+        <div class="body-zone">
+          <div class="imagery">正午恒星</div>
+          <p class="summary">你倾向于把能量向外打开，像正午的恒星一样稳定地发着光。</p>
+          <ul class="traits">
+            <li>你倾向于率先表达想法，在需要有人开场的场合里，更容易成为那个先开口的人。</li>
+            <li>你倾向于按条理梳理问题，面对选择时更容易先看事实与条件，再谈感受。</li>
+            <li>你倾向于主动靠近，在关系里常常是推进节奏的那一方。</li>
+          </ul>
+          <div class="tip">相处模式提示：和偏向内隐、静蓄的人相处时，你的热意会慢慢把对方带进来。</div>
+        </div>
+        <div class="actions rel">
+          <span class="badge" style="left:6px;top:6px">6</span>
+          <button class="btn">邀请好友配对</button>
+          <button class="btn ghost">分享</button>
+        </div>
+        <div class="disclaimer">本结果基于趣味叙事模型生成，仅供娱乐，不作为心理诊断或专业测评依据。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ② 结果卡 · 方形分享卡 ------------------------------------------- -->
+  <section class="frame">
+    <div class="frame-title">P-04 结果卡 · 方形分享卡（1:1 裁切）</div>
+    <div class="square">
+      <div class="card">
+        <svg class="sigil" viewBox="0 0 200 200"><g stroke="#E8C87A" fill="none" stroke-width="1.6">
+          <circle cx="100" cy="100" r="34"/>
+          <circle cx="100" cy="100" r="47" stroke-dasharray="4 7" opacity=".7"/>
+          <polygon points="100,74 120,100 100,126 80,100" stroke-width="1.2"/>
+          <line x1="152" y1="100" x2="174" y2="100"/><line x1="48" y1="100" x2="26" y2="100"/>
+          <line x1="100" y1="48" x2="100" y2="26"/><line x1="100" y1="152" x2="100" y2="174"/>
+          <line x1="136.8" y1="63.2" x2="152.3" y2="47.7"/><line x1="63.2" y1="63.2" x2="47.7" y2="47.7"/>
+          <line x1="63.2" y1="136.8" x2="47.7" y2="152.3"/><line x1="136.8" y1="136.8" x2="152.3" y2="152.3"/>
+        </g></svg>
+        <div class="sq-name">曜日型</div>
+        <div class="sq-imagery">正午恒星</div>
+        <p class="sq-summary">你倾向于把能量向外打开，像正午的恒星一样……</p>
+        <div class="sq-foot">
+          <span class="pair-code">配对码 · 7F2K</span>
+          <span class="sq-note">娱乐测试 · 结果仅供参考</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 结果卡 · 计算中（加载态） --------------------------------------- -->
+  <section class="frame">
+    <div class="frame-title">P-04 结果卡 · 计算中（加载态）</div>
+    <div class="phone">
+      <div class="card">
+        <div class="symbol-zone">
+          <svg class="sigil" viewBox="0 0 200 200">
+            <g stroke="#E8C87A" fill="none" stroke-width="1.6" opacity=".5">
+              <circle cx="100" cy="100" r="46" stroke-dasharray="3 9"/>
+              <circle cx="100" cy="100" r="68" stroke-dasharray="2 13" opacity=".7"/>
+            </g>
+            <g fill="#E8C87A">
+              <circle cx="100" cy="54" r="3.4"/><circle cx="146" cy="100" r="2.6" opacity=".85"/>
+              <circle cx="100" cy="146" r="2.2" opacity=".6"/><circle cx="62" cy="82" r="2" opacity=".7"/>
+              <circle cx="132" cy="132" r="2.4" opacity=".75"/><circle cx="76" cy="124" r="1.8" opacity=".6"/>
+            </g>
+            <circle cx="100" cy="100" r="2.8" fill="#C9B6FF" opacity=".85"/>
+          </svg>
+          <span class="skel" style="width:118px;height:16px;margin-top:4px"></span>
+          <span class="skel" style="width:70px;height:9px"></span>
+        </div>
+        <div class="body-zone">
+          <span class="skel" style="width:96px;height:12px;margin:4px auto 14px"></span>
+          <span class="skel" style="width:88%"></span>
+          <span class="skel" style="width:94%"></span>
+          <span class="skel" style="width:62%"></span>
+          <div class="calc-note">正在生成你的人格映像…<br>星点正在聚合，请稍候</div>
+        </div>
+        <div class="actions">
+          <button class="btn" disabled style="opacity:.45">生成中…</button>
+        </div>
+        <div class="disclaimer">本结果基于趣味叙事模型生成，仅供娱乐，不作为心理诊断或专业测评依据。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 结果卡 · 计算失败（重试态） -------------------------------------- -->
+  <section class="frame">
+    <div class="frame-title">P-04 结果卡 · 计算失败（重试态）</div>
+    <div class="phone">
+      <div class="card">
+        <div class="symbol-zone" style="opacity:.38">
+          <svg class="sigil" viewBox="0 0 200 200"><g stroke="#E8C87A" fill="none" stroke-width="1.6">
+            <circle cx="100" cy="100" r="34"/>
+            <circle cx="100" cy="100" r="47" stroke-dasharray="4 7" opacity=".7"/>
+          </g></svg>
+        </div>
+        <div class="body-zone">
+          <div class="fail-title">未能生成结果</div>
+          <p class="summary">网络似乎不太稳定，你的人格映像没有生成成功。可以重新试一次。</p>
+        </div>
+        <div class="actions">
+          <button class="btn">重新生成</button>
+        </div>
+        <div class="disclaimer">本结果基于趣味叙事模型生成，仅供娱乐，不作为心理诊断或专业测评依据。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ③ 配对图谱 · 已完成 -------------------------------------------- -->
+  <section class="frame">
+    <div class="frame-title">P-05 配对图谱 · 已完成（好友配对页）</div>
+    <div class="phone">
+      <div class="map-head rel">同频图谱<span class="badge" style="left:2px;top:0">①</span></div>
+
+      <div class="duo rel">
+        <span class="badge" style="left:0;top:-2px">①</span>
+        <div class="thumb">
+          <svg class="sigil" viewBox="0 0 200 200"><g stroke="#E8C87A" fill="none" stroke-width="2">
+            <circle cx="100" cy="100" r="34"/>
+            <circle cx="100" cy="100" r="47" stroke-dasharray="4 7" opacity=".7"/>
+            <polygon points="100,74 120,100 100,126 80,100" stroke-width="1.4"/>
+            <line x1="152" y1="100" x2="174" y2="100"/><line x1="48" y1="100" x2="26" y2="100"/>
+            <line x1="100" y1="48" x2="100" y2="26"/><line x1="100" y1="152" x2="100" y2="174"/>
+            <line x1="136.8" y1="63.2" x2="152.3" y2="47.7"/><line x1="63.2" y1="63.2" x2="47.7" y2="47.7"/>
+            <line x1="63.2" y1="136.8" x2="47.7" y2="152.3"/><line x1="136.8" y1="136.8" x2="152.3" y2="152.3"/>
+          </g></svg>
+          <div class="tname">曜日型</div><div class="tlabel">发起者</div>
+        </div>
+        <div class="link">⇄</div>
+        <div class="thumb">
+          <svg class="sigil" viewBox="0 0 200 200"><g stroke="#C9B6FF" fill="none" stroke-width="2">
+            <circle cx="100" cy="100" r="20" opacity=".45"/>
+            <path d="M94 82C84 64 72 56 56 56" opacity=".82"/>
+            <path d="M106 82C116 64 128 56 144 56" opacity=".82"/>
+            <path d="M100 120C96 136 92 148 86 160" opacity=".6"/>
+          </g>
+          <circle cx="100" cy="100" r="6" fill="#C9B6FF" stroke="none"/>
+          <circle cx="70" cy="134" r="3.2" fill="#C9B6FF" stroke="none" opacity=".8"/>
+          <circle cx="130" cy="142" r="2.6" fill="#C9B6FF" stroke="none" opacity=".7"/></svg>
+          <div class="tname">萤火型</div><div class="tlabel">受邀者</div>
+        </div>
+      </div>
+
+      <div class="bands rel">
+        <span class="badge" style="left:0;top:6px">③</span>
+        <div class="band">
+          <span class="dim">D1 表达</span><span class="pole">外显</span>
+          <span class="track merged"><i class="dot at-a"></i><i class="dot at-a" style="left:5px"></i></span>
+          <span class="pole">内隐</span><span class="mark same">一致</span>
+        </div>
+        <div class="band">
+          <span class="dim">D2 能量</span><span class="pole">炽放</span>
+          <span class="track"><i class="dot at-a"></i><i class="dot at-b"></i></span>
+          <span class="pole">静蓄</span><span class="mark comp">互补</span>
+        </div>
+        <div class="band">
+          <span class="dim">D3 决策</span><span class="pole">理性</span>
+          <span class="track merged"><i class="dot at-a"></i><i class="dot at-a" style="left:5px"></i></span>
+          <span class="pole">感性</span><span class="mark same">一致</span>
+        </div>
+        <div class="band">
+          <span class="dim">D4 关系</span><span class="pole">主动</span>
+          <span class="track"><i class="dot at-a"></i><i class="dot at-b"></i></span>
+          <span class="pole">随和</span><span class="mark comp">互补</span>
+        </div>
+      </div>
+
+      <div class="result-block rel">
+        <span class="badge" style="left:0;top:2px">⑤</span>
+        <div class="pct">83<small>%</small></div>
+        <div class="band-label">相处模式 · 均衡互补型</div>
+      </div>
+
+      <div class="actions rel">
+        <button class="btn">分享图谱</button>
+        <button class="btn ghost">换个好友配对</button>
+      </div>
+      <div class="disclaimer">同频度为娱乐化叙事指标，仅反映双方作答的相似与互补，仅供社交互动参考。</div>
+    </div>
+  </section>
+
+  <!-- ④ 配对图谱 · 等待 / 过期 --------------------------------------- -->
+  <section class="frame">
+    <div class="frame-title">P-05 配对图谱 · 等待 / 已过期（状态稿）</div>
+    <div class="phone" style="height:auto">
+      <div class="map-head">同频图谱</div>
+      <div class="duo">
+        <div class="thumb">
+          <svg class="sigil" viewBox="0 0 200 200"><g stroke="#E8C87A" fill="none" stroke-width="2">
+            <circle cx="100" cy="100" r="34"/>
+            <circle cx="100" cy="100" r="47" stroke-dasharray="4 7" opacity=".7"/>
+            <polygon points="100,74 120,100 100,126 80,100" stroke-width="1.4"/>
+            <line x1="152" y1="100" x2="174" y2="100"/><line x1="48" y1="100" x2="26" y2="100"/>
+            <line x1="100" y1="48" x2="100" y2="26"/><line x1="100" y1="152" x2="100" y2="174"/>
+            <line x1="136.8" y1="63.2" x2="152.3" y2="47.7"/><line x1="63.2" y1="63.2" x2="47.7" y2="47.7"/>
+            <line x1="63.2" y1="136.8" x2="47.7" y2="152.3"/><line x1="136.8" y1="136.8" x2="152.3" y2="152.3"/>
+          </g></svg>
+          <div class="tname">曜日型</div><div class="tlabel">你的卡</div>
+        </div>
+        <div class="link">⇄</div>
+        <div class="thumb waiting">
+          <svg class="sigil" viewBox="0 0 200 200"><g stroke="#C9B6FF" fill="none" stroke-width="2">
+            <circle cx="100" cy="100" r="40" stroke-dasharray="6 10"/>
+            <text x="100" y="112" text-anchor="middle" fill="#C9B6FF" font-size="30"
+                  stroke="none" font-family="serif">?</text>
+          </g></svg>
+          <div class="tname" style="opacity:.6">待完成</div><div class="tlabel">—</div>
+        </div>
+      </div>
+      <div class="state-box">
+        <div class="state-text">等待对方完成测试…</div>
+        <button class="btn small">再次邀请</button>
+      </div>
+      <div style="height:14px"></div>
+      <div class="state-box">
+        <div class="state-text"><b>该邀请已过期</b></div>
+        <div class="state-sub">邀请有效期 7 天（PRD 3.3）</div>
+        <button class="btn small">重新发起配对</button>
+      </div>
+      <div style="height:14px"></div>
+      <div class="disclaimer">同频度为娱乐化叙事指标，仅反映双方作答的相似与互补，仅供社交互动参考。</div>
+    </div>
+  </section>
+
+  <!-- P-06 分享弹窗 ---------------------------------------------------- -->
+  <section class="frame">
+    <div class="frame-title">P-06 分享弹窗（底部弹窗 · 覆盖结果页）</div>
+    <div class="phone" style="padding:0">
+      <div class="card" style="height:600px;border-radius:28px;border:none">
+        <div class="symbol-zone" style="height:250px">
+          <svg class="sigil" viewBox="0 0 200 200"><g stroke="#E8C87A" fill="none" stroke-width="1.6">
+            <circle cx="100" cy="100" r="34"/>
+            <circle cx="100" cy="100" r="47" stroke-dasharray="4 7" opacity=".7"/>
+            <polygon points="100,74 120,100 100,126 80,100" stroke-width="1.2"/>
+            <line x1="152" y1="100" x2="174" y2="100"/><line x1="48" y1="100" x2="26" y2="100"/>
+            <line x1="100" y1="48" x2="100" y2="26"/><line x1="100" y1="152" x2="100" y2="174"/>
+            <line x1="136.8" y1="63.2" x2="152.3" y2="47.7"/><line x1="63.2" y1="63.2" x2="47.7" y2="47.7"/>
+            <line x1="63.2" y1="136.8" x2="47.7" y2="152.3"/><line x1="136.8" y1="136.8" x2="152.3" y2="152.3"/>
+          </g></svg>
+          <div class="archetype">曜日型</div>
+          <div class="code">AAAA</div>
+        </div>
+        <div class="body-zone">
+          <div class="imagery">正午恒星</div>
+          <p class="summary">你倾向于把能量向外打开，像正午的恒星一样稳定地发着光。</p>
+        </div>
+      </div>
+      <div class="modal-bg"></div>
+      <div class="sheet">
+        <div class="sheet-title">分享给好友</div>
+        <div class="sheet-sub">邀请 TA 完成测试，一起看同频图谱</div>
+        <div class="share-top">
+          <div class="preview">
+            <svg class="sigil" viewBox="0 0 200 200"><g stroke="#E8C87A" fill="none" stroke-width="2.4">
+              <circle cx="100" cy="100" r="34"/>
+              <circle cx="100" cy="100" r="50" stroke-dasharray="5 8" opacity=".7"/>
+            </g></svg>
+            <div class="pname">曜日型</div>
+            <div class="pnote">娱乐测试 · 结果仅供参考</div>
+          </div>
+          <div class="share-grid">
+            <div class="share-item"><span class="share-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E8C87A" stroke-width="1.6"><circle cx="9" cy="9" r="3.2"/><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><circle cx="17" cy="10" r="2.4"/></svg></span>抖音好友</div>
+            <div class="share-item"><span class="share-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E8C87A" stroke-width="1.6"><circle cx="8" cy="8.5" r="2.6"/><circle cx="16" cy="8.5" r="2.6"/><path d="M3 18c0-2.4 2.2-4.2 5-4.2s5 1.8 5 4.2"/><path d="M13.5 17.6c.3-2.1 2.3-3.7 4.7-3.7 1 0 1.9.3 2.6.8"/></svg></span>抖音群</div>
+            <div class="share-item"><span class="share-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E8C87A" stroke-width="1.6"><rect x="3.5" y="5" width="17" height="14" rx="2.4"/><circle cx="9" cy="10" r="1.6"/><path d="M4.5 17l4.8-4.4 3.4 3 3-2.6 4 3.6"/></svg></span>保存图片</div>
+            <div class="share-item"><span class="share-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E8C87A" stroke-width="1.6"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></span>复制配对码</div>
+          </div>
+        </div>
+        <div class="sheet-actions">
+          <button class="btn">去邀请配对</button>
+          <button class="btn ghost">再测一次</button>
+        </div>
+        <div class="sheet-disclaimer">娱乐测试 · 结果仅供参考</div>
+      </div>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>

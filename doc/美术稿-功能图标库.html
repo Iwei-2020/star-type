@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>星语人格 · UI 功能图标库</title>
+<style>
+  :root{
+    --gold:#E8C87A; --ivory:#F5EFE6; --violet:#C9B6FF;
+    --font-title:"LXGW WenKai","Songti SC",serif;
+    --font-body:"Source Han Sans SC","PingFang SC",-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#141029;font-family:var(--font-body);color:var(--ivory);padding:44px 40px 56px}
+  .board{max-width:1140px;margin:0 auto}
+  .head{padding-bottom:22px;border-bottom:1px solid rgba(232,200,122,.22);margin-bottom:8px}
+  .head h1{font-family:var(--font-title);font-size:25px;letter-spacing:.14em;font-weight:400}
+  .head .sub{font-size:13px;color:var(--violet);opacity:.85;padding-top:8px}
+  .spec{display:grid;grid-template-columns:repeat(2,1fr);gap:5px 30px;
+    padding-top:16px;font-size:11.5px;line-height:1.85;color:rgba(245,239,230,.72)}
+  .spec b{color:var(--gold);font-weight:400}
+  h2{font-family:var(--font-title);font-size:16px;font-weight:400;letter-spacing:.12em;
+    color:var(--gold);opacity:.92;padding:26px 0 14px}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .cell{border-radius:14px;padding:14px 10px 12px;
+    background:linear-gradient(180deg,#2A1B4A 0%,#1B1035 100%);
+    border:1px solid rgba(232,200,122,.18);
+    display:flex;flex-direction:column;align-items:center;text-align:center}
+  .cell .idx{font-size:10.5px;letter-spacing:.14em;color:var(--gold);opacity:.8}
+  .cell .ico{width:104px;height:104px;margin:6px 0 3px}
+  .cell .ename{font-family:var(--font-title);font-size:15px;letter-spacing:.06em}
+  .cell .euse{font-size:10.5px;color:var(--violet);opacity:.78;padding-top:2px;line-height:1.5}
+  .cell .espec{font-size:10px;color:rgba(245,239,230,.5);padding-top:3px;line-height:1.5}
+  .cell .estate{font-size:10px;color:rgba(245,239,230,.4);padding-top:2px}
+  table{width:100%;border-collapse:collapse;font-size:11px;line-height:1.6;margin-top:6px}
+  th,td{text-align:left;padding:7px 9px;border-bottom:1px solid rgba(232,200,122,.14);vertical-align:top}
+  th{color:var(--gold);font-weight:400;letter-spacing:.04em;background:rgba(42,27,74,.45)}
+  td:first-child{color:var(--gold);white-space:nowrap}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10.5px;color:var(--violet)}
+</style>
+</head>
+<body>
+<div class="board">
+  <div class="head">
+    <h1>星语人格 · UI 功能图标库</h1>
+    <div class="sub">《星语人格 · 好友同频测试》美术素材 · 单色线描 · 供全流程页面与弹窗复用</div>
+    <div class="spec">
+      <div><b>统一网格</b>：24 × 24 单位方形网格，图形不越界；展示尺寸 52rpx（视觉等效 26px @1×）</div>
+      <div><b>线描规范</b>：线宽 <b>1.6</b> 单位，端点与转角均为圆头（round cap / join），对齐「通用线稿规范」细金线描</div>
+      <div><b>用色</b>：默认暖金 <b>#E8C87A</b>；禁用 / 弱化态降至 <b>55%</b> 透明度；全库单色系，不引入第二色</div>
+      <div><b>命中区</b>：交互图标热区 ≥ <b>88 × 88rpx</b>（本体 52rpx），避免误触</div>
+      <div><b>交付</b>：SVG 矢量（<code>fill:none</code> + <code>stroke</code>，不得文字转曲），另出 PNG @1×/2×/3×</div>
+      <div><b>禁止</b>：对勾类图形不得用于答题选项（避免「正确答案」暗示）；红绿不得用于任何状态或配对优劣区分</div>
+    </div>
+  </div>
+
+  <h2>A · 导航与操作</h2>
+  <div class="grid">
+    <div class="cell">
+      <div class="idx">A-1</div>
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#E8C87A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.6 5.6 8.2 12l6.4 6.4"/></svg>
+      <div class="ename">返回</div><div class="euse">页面级返回，左上角</div>
+      <div class="espec">52rpx · 100%</div>
+    </div>
+    <div class="cell">
+      <div class="idx">A-2</div>
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#E8C87A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18.4 12H6.2"/><path d="M11.8 5.8 5.6 12l6.2 6.2"/></svg>
+      <div class="ename">上一题</div><div class="euse">P-03 顶部左侧，带杆箭头</div>
+      <div class="espec">52rpx · 100%</div>
+    </div>
+    <div class="cell">
+      <div class="idx">A-3</div>
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#E8C87A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6.6 6.6 17.4 17.4"/><path d="M17.4 6.6 6.6 17.4"/></svg>
+      <div class="ename">关闭</div><div class="euse">弹窗 / 蒙层右上角</div>
+      <div class="espec">52rpx · 100%</div>
+    </div>
+    <div class="cell">
+      <div class="idx">A-4</div>
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#E8C87A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5.8 9.4 12 15.6l6.2-6.2"/></svg>
+      <div class="ename">展开</div><div class="euse">折叠区展开 / 下拉</div>
+      <div class="espec">52rpx · 100%</div>
+    </div>
+  </div>
+
+  <h2>B · 分享与配对</h2>
+  <div class="grid">
+    <div class="cell">
+      <div class="idx">B-1</div>
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#E8C87A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="17.4" cy="5.8" r="2.5"/><circle cx="6.6" cy="12" r="2.5"/><circle cx="17.4" cy="18.2" r="2.5"/><path d="M8.8 10.7 15.2 7.1"/><path d="M8.8 13.3 15.2 16.9"/></svg>
+      <div class="ename">分享</div><div class="euse">P-04 / P-05 分享入口</div>
+      <div class="espec">52rpx · 100%</div>
+    </div>
+    <div class="cell">
+      <div class="idx">B-2</div>
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#E8C87A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9.4" cy="8.4" r="3.2"/><path d="M3.8 18.6c0-3.1 2.5-5.3 5.6-5.3s5.6 2.2 5.6 5.3"/><circle cx="17.2" cy="9.4" r="2.4"/><path d="M15.9 14.1c2.5.2 4.3 2.1 4.3 4.5"/></svg>
+      <div class="ename">抖音好友</div><div class="euse">P-06 渠道 ①，单人语义</div>
+      <div class="espec">52rpx · 100%</div>
+    </div>
+    <div class="cell">
+      <div class="idx">B-3</div>
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#E8C87A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.4" cy="9.4" r="2.3"/><circle cx="12" cy="7.6" r="2.6"/><circle cx="17.6" cy="9.4" r="2.3"/><path d="M2.4 18.8c0-2.5 1.8-4.5 4.1-4.5"/><path d="M8.3 18.8c0-2.8 1.7-5 3.7-5s3.7 2.2 3.7 5"/><path d="M17.5 14.3c2.3.1 4.1 2.1 4.1 4.5"/></svg>
+      <div class="ename">抖音群</div><div class="euse">P-06 渠道 ②，多人语义</div>
+      <div class="espec">52rpx · 100%</div>
+    </div>
+    <div class="cell">
+      <div class="idx">B-4</div>
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#E8C87A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.6" y="5.2" width="16.8" height="13.6" rx="2.4"/><circle cx="9" cy="10" r="1.7"/><path d="M4.6 17.2 9.4 12.8l3.4 3 3-2.6 4 3.6"/></svg>
+      <div class="ename">保存图片</div><div class="euse">P-06 渠道 ③（相册框）</div>
+      <div class="espec">52rpx · 100%</div>
+    </div>
+    <div class="cell">
+      <div class="idx">B-5</div>
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#E8C87A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="8.8" y="8.8" width="10.6" height="10.6" rx="2.2"/><path d="M15.4 5.6H7.6a2.2 2.2 0 0 0-2.2 2.2v7.8"/></svg>
+      <div class="ename">复制配对码</div><div class="euse">P-06 渠道 ④（双框复制）</div>
+      <div class="espec">52rpx · 100%</div>
+    </div>
+    <div class="cell">
+      <div class="idx">B-6</div>
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#E8C87A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9.7 14.3a4.4 4.4 0 0 0 6.3 0l3-3a4.4 4.4 0 0 0-6.3-6.3l-1.5 1.5"/><path d="M14.3 9.7a4.4 4.4 0 0 0-6.3 0l-3 3a4.4 4.4 0 0 0 6.3 6.3l1.5-1.5"/></svg>
+      <div class="ename">邀请链接</div><div class="euse">P-05 邀请卡 / 配对码</div>
+      <div class="espec">52rpx · 100%</div>
+    </div>
+    <div class="cell">
+      <div class="idx">B-7</div>
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#E8C87A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3.6 18.4c0-3 2.4-5.2 5.4-5.2 1.5 0 2.9.6 3.8 1.6"/><path d="M15.6 18.6l2.1 2.1 4-4.6"/></svg>
+      <div class="ename">对方已完成</div><div class="euse">P-05 配对完成态标记</div>
+      <div class="espec">52rpx · 100%</div>
+      <div class="estate">仅用于配对状态，禁用于答题选项</div>
+    </div>
+    <div class="cell">
+      <div class="idx">B-8</div>
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#C9B6FF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity=".55"><circle cx="12" cy="12" r="6.4"/><path d="M9.6 9.6l4.8 4.8"/><path d="M14.4 9.6l-4.8 4.8"/></svg>
+      <div class="ename">无 / 占位</div><div class="euse">空态、未生成占位</div>
+      <div class="espec">52rpx · 55%（弱化）</div>
+    </div>
+  </div>
+
+  <h2>C · 状态反馈</h2>
+  <div class="grid">
+    <div class="cell">
+      <div class="idx">C-1</div>
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#E8C87A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7.4" opacity=".3"/><path d="M12 4.6a7.4 7.4 0 0 1 7.4 7.4"/></svg>
+      <div class="ename">加载中</div><div class="euse">P-04 计算中（旋转动效）</div>
+      <div class="espec">52rpx · 旋转 1.2s 线性</div>
+    </div>
+    <div class="cell">
+      <div class="idx">C-2</div>
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#E8C87A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18.6 9.3A7 7 0 1 0 19 12.1"/><path d="M18.9 5.4v4h-4"/></svg>
+      <div class="ename">重试</div><div class="euse">P-04 计算失败态按钮</div>
+      <div class="espec">52rpx · 100%</div>
+    </div>
+    <div class="cell">
+      <div class="idx">C-3</div>
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#E8C87A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7.6"/><path d="M12 7.8v4.6l3 1.8"/></svg>
+      <div class="ename">等待</div><div class="euse">P-05 等待对方完成</div>
+      <div class="espec">52rpx · 100%</div>
+    </div>
+    <div class="cell">
+      <div class="idx">C-4</div>
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#C9B6FF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7.6"/><path d="M12 7.8v4.6l3 1.8"/><path d="M5.9 18.1 18.1 5.9"/></svg>
+      <div class="ename">已过期</div><div class="euse">P-05 邀请过期态</div>
+      <div class="espec">52rpx · 100%（淡紫）</div>
+    </div>
+  </div>
+
+  <h2>D · 辅助与媒体</h2>
+  <div class="grid">
+    <div class="cell">
+      <div class="idx">D-1</div>
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#E8C87A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7.8"/><path d="M12 11.2v5.2"/><circle cx="12" cy="8.2" r=".95" fill="#E8C87A" stroke="none"/></svg>
+      <div class="ename">提示信息</div><div class="euse">玩法说明 / 免责弱提示</div>
+      <div class="espec">52rpx · 100%</div>
+    </div>
+    <div class="cell">
+      <div class="idx">D-2</div>
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#E8C87A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.6 9.4h3.1L12.3 6v12l-4.6-3.4H4.6z"/><path d="M15.9 9.7l4.2 4.6"/><path d="M20.1 9.7l-4.2 4.6"/></svg>
+      <div class="ename">静音</div><div class="euse">激励视频播放器（PRD 7.3）</div>
+      <div class="espec">52rpx · 100%</div>
+    </div>
+    <div class="cell">
+      <div class="idx">D-3</div>
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#E8C87A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.6 9.4h3.1L12.3 6v12l-4.6-3.4H4.6z"/><path d="M15.4 9.6a3.5 3.5 0 0 1 0 4.8"/><path d="M17.9 7.4a6.6 6.6 0 0 1 0 9.2"/></svg>
+      <div class="ename">音量</div><div class="euse">激励视频播放器（PRD 7.3）</div>
+      <div class="espec">52rpx · 100%</div>
+    </div>
+    <div class="cell">
+      <div class="idx">D-4</div>
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#E8C87A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7.8"/><path d="M12 16V8.8"/><path d="M12 7.6h.01"/></svg>
+      <div class="ename">异常</div><div class="euse">网络中断 / 拉起失败 toast</div>
+      <div class="espec">52rpx · 100%</div>
+    </div>
+  </div>
+
+  <h2>E · 替换指引（稿中现有内联图标 → 本库编号）</h2>
+  <table>
+    <thead><tr><th>位置</th><th>现有做法</th><th>替换为</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td>P-06 分享渠道 ×4</td><td>稿内临时内联 16px SVG，无网格与线宽规范</td><td>B-2 / B-3 / B-4 / B-5</td><td>统一为 24 网格、线宽 1.6、命中区 88rpx</td></tr>
+      <tr><td>P-06「复制配对码」</td><td>四宫格图形（语义近似「网格」）</td><td>B-5</td><td>改为双框复制语义，降低误读</td></tr>
+      <tr><td>P-03 顶部「上一题」</td><td>纯文字，无图标</td><td>A-2</td><td>文字保留，左侧补带杆箭头</td></tr>
+      <tr><td>P-04 计算失败「重试」</td><td>纯文字按钮</td><td>C-2</td><td>按钮内左置图标，保持 88rpx 热区</td></tr>
+      <tr><td>P-04 计算中</td><td>骨架屏（无图标）</td><td>C-1 / B-1</td><td>C-1 可叠加于骨架区，非必须替换</td></tr>
+      <tr><td>P-05 等待 / 已过期</td><td>纯文字状态提示</td><td>C-3 / C-4</td><td>状态区上方补图标，颜色仍走金 / 淡紫</td></tr>
+      <tr><td>全库</td><td>—</td><td>—</td><td>不使用抖音平台官方 logo 图形（品牌授权风险），渠道图标一律用通用语义图形</td></tr>
+    </tbody>
+  </table>
+</div>
+</body>
+</html>

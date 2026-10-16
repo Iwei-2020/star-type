@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>星语人格 · 通用装饰元素库</title>
+<style>
+  :root{
+    --gold:#E8C87A; --ivory:#F5EFE6; --violet:#C9B6FF;
+    --font-title:"LXGW WenKai","Songti SC",serif;
+    --font-body:"Source Han Sans SC","PingFang SC",-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#141029;font-family:var(--font-body);color:var(--ivory);padding:44px 40px 56px}
+  .board{max-width:1140px;margin:0 auto}
+  .head{padding-bottom:22px;border-bottom:1px solid rgba(232,200,122,.22);margin-bottom:8px}
+  .head h1{font-family:var(--font-title);font-size:25px;letter-spacing:.14em;font-weight:400}
+  .head .sub{font-size:13px;color:var(--violet);opacity:.85;padding-top:8px}
+  .spec{display:grid;grid-template-columns:repeat(2,1fr);gap:5px 30px;
+    padding-top:16px;font-size:11.5px;line-height:1.85;color:rgba(245,239,230,.72)}
+  .spec b{color:var(--gold);font-weight:400}
+  h2{font-family:var(--font-title);font-size:16px;font-weight:400;letter-spacing:.12em;
+    color:var(--gold);opacity:.92;padding:26px 0 14px}
+  .grid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px}
+  .cell{border-radius:14px;padding:12px 10px 11px;
+    background:linear-gradient(180deg,#2A1B4A 0%,#1B1035 100%);
+    border:1px solid rgba(232,200,122,.18);
+    display:flex;flex-direction:column;align-items:center;text-align:center}
+  .cell .idx{font-size:10.5px;letter-spacing:.14em;color:var(--gold);opacity:.8}
+  .cell .sym{width:104px;height:104px;margin:6px 0 3px}
+  .cell .ename{font-family:var(--font-title);font-size:15px;letter-spacing:.06em}
+  .cell .euse{font-size:10.5px;color:var(--violet);opacity:.78;padding-top:2px;line-height:1.5}
+  .cell .espec{font-size:10px;color:rgba(245,239,230,.5);padding-top:3px;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="board">
+  <div class="head">
+    <h1>星语人格 · 通用装饰元素库</h1>
+    <div class="sub">《星语人格 · 好友同频测试》美术素材 · 矢量优先 · 供卡面与动态切图复用</div>
+    <div class="spec">
+      <div><b>出图基准</b>：按 750rpx 设计宽度，导出 1× / 2× / 3× SVG 或 PNG</div>
+      <div><b>用色</b>：暖金 <b>#E8C87A</b> / 淡紫 <b>#C9B6FF</b> / 象牙白 <b>#F5EFE6</b></div>
+      <div><b>光晕类导出</b>：允许以带透明 PNG 交付，规避低端机渐变性能开销（见 PRD 5.3）</div>
+      <div><b>示意比例</b>：本稿元素为放大示意，实际尺寸与透明度见各格标注</div>
+      <div><b>动效配合</b>：星点 2–6s 缓慢明暗循环；光晕 0.8s 淡入；金线 8–12s 横向微移</div>
+      <div><b>禁止</b>：闪光频率超过每秒 3 次（参照 WCAG 闪光准则）、宗教性标识、吉凶类符号</div>
+    </div>
+  </div>
+
+  <h2>A · 星点粒子</h2>
+  <div class="grid">
+    <div class="cell">
+      <div class="idx">A-1</div>
+      <svg class="sym" viewBox="0 0 200 200"><circle cx="100" cy="100" r="22" fill="#E8C87A"/></svg>
+      <div class="ename">单星点</div><div class="euse">基础点缀、粒子层</div>
+      <div class="espec">φ 8rpx · 100%</div>
+    </div>
+    <div class="cell">
+      <div class="idx">A-2</div>
+      <svg class="sym" viewBox="0 0 200 200">
+        <circle cx="100" cy="100" r="26" fill="#E8C87A" opacity=".12"/>
+        <circle cx="100" cy="100" r="9" fill="#E8C87A" opacity=".45"/>
+      </svg>
+      <div class="ename">微光点</div><div class="euse">远景点缀、弱化层</div>
+      <div class="espec">φ 4rpx · 45% + 外晕</div>
+    </div>
+    <div class="cell">
+      <div class="idx">A-3</div>
+      <svg class="sym" viewBox="0 0 200 200"><g fill="#E8C87A">
+        <circle cx="86" cy="92" r="13"/><circle cx="120" cy="106" r="8" opacity=".8"/>
+        <circle cx="72" cy="120" r="6" opacity=".6"/><circle cx="132" cy="76" r="5" opacity=".5"/>
+      </g></svg>
+      <div class="ename">星点簇</div><div class="euse">符号区周围、留白填充</div>
+      <div class="espec">2–4 点错落 · 50–100%</div>
+    </div>
+    <div class="cell">
+      <div class="idx">A-4</div>
+      <svg class="sym" viewBox="0 0 200 200">
+        <path d="M100 56l10 34 34 10-34 10-10 34-10-34-34-10 34-10z"
+              fill="none" stroke="#E8C87A" stroke-width="1.6"/>
+        <circle cx="100" cy="100" r="4" fill="#C9B6FF"/>
+      </svg>
+      <div class="ename">菱形星点</div><div class="euse">标题两侧、分隔线端点</div>
+      <div class="espec">四角星 · 描线 1.6</div>
+    </div>
+    <div class="cell">
+      <div class="idx">A-5</div>
+      <svg class="sym" viewBox="0 0 200 200">
+        <circle cx="100" cy="100" r="9" fill="#E8C87A"/>
+        <g stroke="#E8C87A" stroke-width="1.6" opacity=".8">
+          <line x1="82" y1="82" x2="64" y2="64"/><line x1="118" y1="82" x2="136" y2="64"/>
+          <line x1="82" y1="118" x2="64" y2="136"/><line x1="118" y1="118" x2="136" y2="136"/>
+        </g>
+      </svg>
+      <div class="ename">光芒点</div><div class="euse">结果揭晓高光点</div>
+      <div class="espec">圆点 + 斜向四芒</div>
+    </div>
+    <div class="cell">
+      <div class="idx">A-6</div>
+      <svg class="sym" viewBox="0 0 200 200">
+        <circle cx="80" cy="86" r="11" fill="#E8C87A"/>
+        <path d="M88 96c16 12 30 24 44 40" fill="none" stroke="#E8C87A" stroke-width="1.6" opacity=".55"/>
+        <path d="M74 102c10 18 26 30 40 44" fill="none" stroke="#E8C87A" stroke-width="1.2" opacity=".32"/>
+      </svg>
+      <div class="ename">拖尾点</div><div class="euse">星点聚合成图谱的过程</div>
+      <div class="espec">点 + 1–2 条拖尾弧</div>
+    </div>
+  </div>
+
+  <h2>B · 金线</h2>
+  <div class="grid">
+    <div class="cell">
+      <div class="idx">B-1</div>
+      <svg class="sym" viewBox="0 0 200 200"><line x1="18" y1="100" x2="182" y2="100"
+        stroke="#E8C87A" stroke-width="1.4" opacity=".75"/></svg>
+      <div class="ename">细分隔线</div><div class="euse">模块间分隔</div>
+      <div class="espec">1–2rpx · 75%</div>
+    </div>
+    <div class="cell">
+      <div class="idx">B-2</div>
+      <svg class="sym" viewBox="0 0 200 200"><line x1="18" y1="100" x2="182" y2="100"
+        stroke="#E8C87A" stroke-width="1.6" stroke-dasharray="6 10" opacity=".7"/></svg>
+      <div class="ename">虚分隔线</div><div class="euse">状态区分、待完成占位</div>
+      <div class="espec">dash 6 / 10 · 70%</div>
+    </div>
+    <div class="cell">
+      <div class="idx">B-3</div>
+      <svg class="sym" viewBox="0 0 200 200">
+        <defs><linearGradient id="fadeLine" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#E8C87A" stop-opacity="0"/>
+          <stop offset=".5" stop-color="#E8C87A" stop-opacity=".9"/>
+          <stop offset="1" stop-color="#E8C87A" stop-opacity="0"/>
+        </linearGradient></defs>
+        <rect x="18" y="98" width="164" height="4" rx="2" fill="url(#fadeLine)"/>
+      </svg>
+      <div class="ename">渐隐金线</div><div class="euse">标题下方、卡面顶部</div>
+      <div class="espec">两端渐隐 · 中心 90%</div>
+    </div>
+    <div class="cell">
+      <div class="idx">B-4</div>
+      <svg class="sym" viewBox="0 0 200 200"><path
+        d="M18 100c13-14 27-14 40 0s27 14 40 0 27-14 40 0 27 14 40 0"
+        fill="none" stroke="#E8C87A" stroke-width="1.6" opacity=".7"/></svg>
+      <div class="ename">波状线</div><div class="euse">意象行装饰、过渡模块</div>
+      <div class="espec">3 波峰 · 70%</div>
+    </div>
+    <div class="cell">
+      <div class="idx">B-5</div>
+      <svg class="sym" viewBox="0 0 200 200">
+        <path d="M34 92V48c0-7 5-11 11-11h44" fill="none" stroke="#E8C87A" stroke-width="1.6" opacity=".85"/>
+        <path d="M34 118v-14" fill="none" stroke="#E8C87A" stroke-width="1.2" opacity=".45"/>
+        <circle cx="34" cy="140" r="3.4" fill="#E8C87A"/>
+      </svg>
+      <div class="ename">卡角纹</div><div class="euse">结果卡与分享卡四角</div>
+      <div class="espec">可镜像复用 · 4 角</div>
+    </div>
+    <div class="cell">
+      <div class="idx">B-6</div>
+      <svg class="sym" viewBox="0 0 200 200">
+        <g stroke="#E8C87A" stroke-width="1.4" opacity=".65" fill="none">
+          <line x1="100" y1="104" x2="54" y2="42"/>
+          <line x1="100" y1="104" x2="100" y2="30"/>
+          <line x1="100" y1="104" x2="146" y2="42"/>
+        </g>
+        <circle cx="100" cy="104" r="5" fill="#E8C87A"/>
+      </svg>
+      <div class="ename">放射线组</div><div class="euse">符号区背景、揭晓动效</div>
+      <div class="espec">3–5 条 · 自一点发散</div>
+    </div>
+  </div>
+
+  <h2>C · 光晕</h2>
+  <div class="grid">
+    <div class="cell">
+      <div class="idx">C-1</div>
+      <svg class="sym" viewBox="0 0 200 200">
+        <defs><radialGradient id="glowRadial">
+          <stop offset="0" stop-color="#C9B6FF" stop-opacity=".55"/>
+          <stop offset="1" stop-color="#C9B6FF" stop-opacity="0"/>
+        </radialGradient></defs>
+        <circle cx="100" cy="100" r="72" fill="url(#glowRadial)"/>
+        <circle cx="100" cy="100" r="15" fill="#F5EFE6" opacity=".92"/>
+      </svg>
+      <div class="ename">径向光晕</div><div class="euse">结果揭晓、符号高光</div>
+      <div class="espec">淡紫 55% → 0</div>
+    </div>
+    <div class="cell">
+      <div class="idx">C-2</div>
+      <svg class="sym" viewBox="0 0 200 200">
+        <circle cx="100" cy="100" r="56" fill="none" stroke="#E8C87A" stroke-width="2" opacity=".35"/>
+        <circle cx="100" cy="100" r="70" fill="none" stroke="#E8C87A" stroke-width="1.4"
+                stroke-dasharray="3 12" opacity=".3"/>
+      </svg>
+      <div class="ename">环状光晕</div><div class="euse">符号区外圈、加载态</div>
+      <div class="espec">双环 · 实 + 虚</div>
+    </div>
+    <div class="cell">
+      <div class="idx">C-3</div>
+      <svg class="sym" viewBox="0 0 200 200">
+        <defs><radialGradient id="glowStar">
+          <stop offset="0" stop-color="#E8C87A" stop-opacity=".42"/>
+          <stop offset="1" stop-color="#E8C87A" stop-opacity="0"/>
+        </radialGradient></defs>
+        <circle cx="100" cy="100" r="66" fill="url(#glowStar)"/>
+        <path d="M100 48l8 44 44 8-44 8-8 44-8-44-44-8 44-8z"
+              fill="none" stroke="#E8C87A" stroke-width="1.6" opacity=".85"/>
+      </svg>
+      <div class="ename">星芒光晕</div><div class="euse">结果卡主视觉</div>
+      <div class="espec">暖金光晕 + 四角星</div>
+    </div>
+    <div class="cell">
+      <div class="idx">C-4</div>
+      <svg class="sym" viewBox="0 0 200 200">
+        <defs><linearGradient id="glowBottom" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#C9B6FF" stop-opacity="0"/>
+          <stop offset="1" stop-color="#C9B6FF" stop-opacity=".45"/>
+        </linearGradient></defs>
+        <ellipse cx="100" cy="128" rx="74" ry="36" fill="url(#glowBottom)"/>
+        <line x1="40" y1="128" x2="160" y2="128" stroke="#E8C87A" stroke-width="1.2" opacity=".5"/>
+      </svg>
+      <div class="ename">底部底光</div><div class="euse">CTA 区承托、页面底部</div>
+      <div class="espec">椭圆 · 上淡下浓</div>
+    </div>
+  </div>
+
+  <h2>D · 组合示例</h2>
+  <div class="grid">
+    <div class="cell">
+      <div class="idx">D-1</div>
+      <svg class="sym" viewBox="0 0 200 200">
+        <rect x="18" y="98" width="164" height="4" rx="2" fill="url(#fadeLine)"/>
+        <circle cx="100" cy="100" r="6" fill="#E8C87A"/>
+      </svg>
+      <div class="ename">标题分隔组</div><div class="euse">B-3 + A-1</div>
+      <div class="espec">卡面标题下缘</div>
+    </div>
+    <div class="cell">
+      <div class="idx">D-2</div>
+      <svg class="sym" viewBox="0 0 200 200">
+        <path d="M34 92V48c0-7 5-11 11-11h44" fill="none" stroke="#E8C87A" stroke-width="1.6" opacity=".8"/>
+        <path d="M148 118l6 22 22 6-22 6-6 22-6-22-22-6 22-6z"
+              fill="none" stroke="#E8C87A" stroke-width="1.4" opacity=".65"/>
+      </svg>
+      <div class="ename">卡角装饰组</div><div class="euse">B-5 + A-4（对角）</div>
+      <div class="espec">结果卡四角成对</div>
+    </div>
+    <div class="cell">
+      <div class="idx">D-3</div>
+      <svg class="sym" viewBox="0 0 200 200">
+        <line x1="26" y1="100" x2="174" y2="100" stroke="#E8C87A" stroke-width="1.4" opacity=".45"/>
+        <circle cx="52" cy="100" r="10" fill="#E8C87A"/>
+        <circle cx="148" cy="100" r="8" fill="#C9B6FF" opacity=".85"/>
+        <circle cx="100" cy="100" r="5" fill="#F5EFE6" opacity=".9"/>
+      </svg>
+      <div class="ename">图谱连线组</div><div class="euse">B-1 + A-1 + A-2</div>
+      <div class="espec">对照带双端 + 中段</div>
+    </div>
+    <div class="cell">
+      <div class="idx">D-4</div>
+      <svg class="sym" viewBox="0 0 200 200">
+        <rect x="30" y="40" width="140" height="120" rx="18" fill="none"
+              stroke="#E8C87A" stroke-width="1.2" opacity=".35"/>
+        <circle cx="100" cy="100" r="26" fill="#C9B6FF" opacity=".14"/>
+        <circle cx="100" cy="100" r="7" fill="#E8C87A"/>
+      </svg>
+      <div class="ename">分享卡底组</div><div class="euse">B-1 + A-1 + C-1（降透明）</div>
+      <div class="espec">1:1 方形卡安全区</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

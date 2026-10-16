@@ -17,7 +17,7 @@ const constants = require('../shared/constants.js');
 const strings = require('../miniapp/shared/strings.js');
 const display = require('../miniapp/core/display.js');
 
-const DOCS = path.join(__dirname, '..', '..');
+const DOCS = path.join(__dirname, '..', 'doc');
 const QUIZ_ASSET = path.join(DOCS, '文案资产-10题题库与计分表.md');
 
 // ─────────────────────────────────────────────────────────────

@@ -25,14 +25,14 @@ const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
 const SCAN_ROOT = path.join(ROOT, 'miniapp');
-const DOCS_ROOT = path.join(ROOT, '..');
+const DOCS_ROOT = path.join(ROOT, 'doc');
 const SELFTEST = process.argv.includes('--selftest');
 
 const BANNED_WORDS = ['命中注定', '一定会', '宿命', '吉凶', '预言', '转运', '算命', '预测未来'];
 const SCAN_EXTENSIONS = ['.js', '.json', '.ttml', '.ttss', '.md'];
 
 /**
- * 上游文案资产（相对 project-dy/）：这 5 份承载**用户可见文案与视觉文字**，
+ * 上游文案资产（相对 star-type/doc/）：这 5 份承载**用户可见文案与视觉文字**，
  * 是 `strings.js` 与页面文字的来源，必须纳入扫描。
  */
 const UPSTREAM_DOCS = [
