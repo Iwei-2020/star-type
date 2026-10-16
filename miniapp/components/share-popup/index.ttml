@@ -1,0 +1,35 @@
+<view class="st-mask" tt:if="{{visible}}" tt:catchtap="onMaskTap">
+  <view class="st-popup" tt:catchtap="onPopupTap">
+    <view class="st-popup__head">
+      <text class="st-popup__title">分享给好友</text>
+      <text class="st-popup__subtitle">邀请 TA 完成测试，一起看同频图谱</text>
+    </view>
+
+    <view class="st-popup__body">
+      <view class="st-popup__card">
+        <text class="st-popup__card-name">{{archetypeName}}</text>
+        <text class="st-popup__card-code">{{pairCode}}</text>
+        <text class="st-popup__card-tip">{{cardText}}</text>
+      </view>
+
+      <view class="st-popup__channels">
+        <view
+          class="st-popup__channel"
+          tt:for="{{channels}}"
+          tt:key="key"
+          data-channel="{{item.key}}"
+          tt:catchtap="onChannelTap"
+        >
+          <text>{{item.label}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="st-popup__actions">
+      <view class="st-popup__action" tt:catchtap="onInviteTap">去邀请配对</view>
+      <view class="st-popup__action" tt:catchtap="onRetryTap">再测一次</view>
+    </view>
+
+    <disclaimer scope="share" />
+  </view>
+</view>

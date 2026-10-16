@@ -1,0 +1,21 @@
+{
+  "name": "star-type",
+  "version": "0.1.0",
+  "private": true,
+  "description": "星语人格 · 好友同频测试 —— 核心逻辑与服务端实现（第一阶段 P0）",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "gen": "node tools/gen-constants.js && node tools/gen-strings.js",
+    "gen:check": "node tools/gen-constants.js --check && node tools/gen-strings.js --check",
+    "check:strings": "node tools/check-strings.js",
+    "check:isolation": "node tools/check-client-isolation.js",
+    "check": "npm run gen:check && npm run check:strings && npm run check:isolation",
+    "text": "node tools/export-text.js",
+    "text:check": "node tools/check-charset-monotonic.js",
+    "verify": "npm test && npm run check && npm run text && npm run text:check"
+  }
+}

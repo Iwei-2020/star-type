@@ -1,0 +1,33 @@
+/* 全局基础样式（骨架）
+ *
+ * 依据：PRD 5.2 视觉规范与《美术资产-全流程视觉P01-P06线稿说明》§1「通用线稿规范」。
+ * 本阶段不做页面视觉还原（实施计划 §七），此处只落地**画布基准**与**色值令牌**，
+ * 供第二阶段直接引用；完整版式（卡片、按钮、对照带等）届时在此文件补齐。
+ *
+ * 色值令牌（均取自 PRD 5.2）：
+ *   --bg-deep  #1B1035   深空蓝紫，页面主底
+ *   --bg-sub   #2A1B4A   次级底，卡片底
+ *   --gold     #E8C87A   暖金线条，按钮描边与线描符号
+ *   --ivory    #F5EFE6   象牙白，正文文字
+ *   --violet   #C9B6FF   星芒淡紫，强调
+ * 背景渐变：135° #1B1035 → #3A2A6B
+ *
+ * 免责提示的字号锁定（≥24rpx）由 components/disclaimer/index.ttss 单点强制，不在此重复。
+ */
+
+page {
+  background: linear-gradient(135deg, #1b1035 0%, #3a2a6b 100%);
+  color: #f5efe6; /* --ivory */
+  font-family: "Source Han Sans", "Alibaba PuHuiTi", -apple-system, "PingFang SC", sans-serif;
+  font-size: 25rpx;
+  line-height: 1.6;
+  min-height: 100%;
+  /* 仅竖屏（技术资产 §4：rpx 750 基准，不做横屏适配） */
+}
+
+/* 页面左右安全边距 48rpx（美术资产 §1） */
+.st-page {
+  box-sizing: border-box;
+  min-height: 100vh;
+  padding: 0 48rpx;
+}

@@ -1,0 +1,12 @@
+# 操作系统
+.DS_Store
+
+# 依赖（本工程零运行时依赖，规则预留给后续）
+node_modules/
+npm-debug.log*
+
+# 构建期生成物：可由 `npm run text` 一键再生，故不入库。
+# 注意：build/charset.lock 是「字符集只增不减」门禁的基线，属于人工确认过的判据，
+#      必须入库（因此只排除 font-chars.txt，不排除整个 build/），
+#      否则他人克隆后门禁会静默重建基线而彻底失去拦截能力。
+build/font-chars.txt

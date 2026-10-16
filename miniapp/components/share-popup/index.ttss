@@ -1,0 +1,109 @@
+/* P-06 分享弹窗：仅为结构可运行的最小样式，动效与精修留第二阶段（实施计划 §七）
+ * 规格参见《美术资产》§七：蒙层透明度 66%、弹窗上圆角 44rpx、抽屉自底部上滑。 */
+.st-mask {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 100;
+  background-color: rgba(27, 16, 53, 0.66);
+}
+
+.st-popup {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 32rpx 0 0;
+  border-radius: 44rpx 44rpx 0 0;
+  background-color: #2a1b4a; /* --bg-sub */
+}
+
+.st-popup__head {
+  padding: 0 48rpx 24rpx;
+  text-align: center;
+}
+
+.st-popup__title {
+  display: block;
+  font-size: 38rpx;
+  color: #f5efe6;
+}
+
+.st-popup__subtitle {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: rgba(245, 239, 230, 0.6);
+}
+
+.st-popup__body {
+  display: flex;
+  align-items: center;
+  padding: 0 48rpx;
+}
+
+.st-popup__card {
+  width: 224rpx;
+  height: 224rpx;
+  padding: 16rpx;
+  box-sizing: border-box;
+  border: 2rpx solid #e8c87a; /* --gold */
+  border-radius: 20rpx;
+  text-align: center;
+}
+
+.st-popup__card-name {
+  display: block;
+  margin-top: 32rpx;
+  font-size: 32rpx;
+  color: #f5efe6;
+}
+
+.st-popup__card-code {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #e8c87a;
+}
+
+.st-popup__card-tip {
+  display: block;
+  margin-top: 32rpx;
+  font-size: 24rpx; /* 与免责组件同锁 24rpx 下限 */
+  color: rgba(245, 239, 230, 0.6);
+}
+
+.st-popup__channels {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  margin-left: 24rpx;
+}
+
+.st-popup__channel {
+  width: 50%;
+  min-height: 88rpx; /* 交互热区 ≥ 88 × 88rpx（美术资产 §1） */
+  line-height: 88rpx;
+  text-align: center;
+  font-size: 24rpx;
+  color: #f5efe6;
+}
+
+.st-popup__actions {
+  display: flex;
+  padding: 24rpx 48rpx 0;
+}
+
+.st-popup__action {
+  flex: 1;
+  min-height: 84rpx;
+  margin: 0 12rpx;
+  border: 2rpx solid #e8c87a;
+  border-radius: 999rpx;
+  line-height: 84rpx;
+  text-align: center;
+  font-size: 26rpx;
+  color: #f5efe6;
+}

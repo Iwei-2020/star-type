@@ -1,0 +1,12 @@
+/* 免责提示：字号锁定 24rpx（PRD 5.2 与美术资产 §1 的下限）
+ * 改动本文件需同步核对《美术资产》§九「出图前校对清单」的免责项。 */
+.st-disclaimer {
+  padding: 24rpx 48rpx 32rpx;
+  text-align: center;
+}
+
+.st-disclaimer__text {
+  font-size: 24rpx;
+  line-height: 1.7;
+  color: rgba(245, 239, 230, 0.55);
+}

@@ -1,0 +1,43 @@
+{
+  "pages": [
+    "pages/home/index",
+    "pages/guide/index"
+  ],
+  "subPackages": [
+    {
+      "root": "packageQuiz",
+      "name": "quiz",
+      "pages": [
+        "pages/quiz/index",
+        "pages/result/index"
+      ]
+    },
+    {
+      "root": "packagePair",
+      "name": "pair",
+      "pages": [
+        "pages/pair/index"
+      ]
+    },
+    {
+      "root": "packageAsset",
+      "name": "asset",
+      "pages": []
+    }
+  ],
+  "preloadRule": {
+    "pages/home/index": {
+      "network": "all",
+      "packages": [
+        "packageQuiz"
+      ]
+    }
+  },
+  "window": {
+    "navigationBarTitleText": "星语人格 · 好友同频测试",
+    "navigationBarBackgroundColor": "#1B1035",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#1B1035",
+    "backgroundTextStyle": "light"
+  }
+}

@@ -1,0 +1,3 @@
+<view class="st-disclaimer">
+  <text class="st-disclaimer__text">{{text}}</text>
+</view>
