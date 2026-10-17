@@ -70,6 +70,35 @@ function resolveInvoker(host, config) {
 }
 
 /**
+ * 依据平台运行时环境挑选云托管接入配置 —— 同一小程序有 dev / prod 两套云环境，须一次配置、自动切换。
+ * 判据：`tt.getEnvInfoSync().microapp.envType`（基础库 ≥ 2.21.0；合法值 `production` 线上版 /
+ * `development` 测试版 / `preview` 预览版）。
+ * **取不到该能力、或取值不认识时一律按 prod 兜底**：宁可连线上，也绝不让线上流量误连测试环境。
+ * @param {object|null} host 抖音小程序为全局 tt
+ * @param {{dev?:object, prod?:object}} targets 环境名 → 接入配置（`{ envID, serviceID }`）
+ * @returns {object|null} 命中的接入配置；targets 缺失 prod 时返回 null
+ */
+function resolveCloudEnv(host, targets) {
+  if (!targets || typeof targets !== 'object') return null;
+  const NON_PROD = ['development', 'preview'];
+
+  let envType = '';
+  if (host && typeof host.getEnvInfoSync === 'function') {
+    try {
+      const info = host.getEnvInfoSync() || {};
+      // 官方为 microapp.envType；此处兼容扁平与历史小写写法，判据缺失即按 prod 兜底
+      const app = info.microapp || info;
+      envType = app.envType || app.envtype || '';
+    } catch (err) {
+      envType = '';
+    }
+  }
+
+  if (NON_PROD.indexOf(envType) >= 0 && targets.dev) return targets.dev;
+  return targets.prod || null;
+}
+
+/**
  * 把平台返回归一成统一信封 `{ code, msg, data }`；形态不可识别时返回 null。
  * 兼容三种包裹（R-8 与历史骨架共用一条解析路径）：
  *   1. 抖音云 `callContainer` 的原始返回 `{ statusCode, header, data }`——`data` 为 JSON 字符串；
@@ -170,4 +199,4 @@ function createCloud(options) {
   };
 }
 
-module.exports = { createCloud, resolveInvoker, unwrap };
+module.exports = { createCloud, resolveInvoker, resolveCloudEnv, unwrap };

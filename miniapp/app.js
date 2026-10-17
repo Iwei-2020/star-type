@@ -15,13 +15,14 @@
  * 关于上报通道：`transport` 仅在宿主具备云函数调用能力时接上（core/cloud.js 的 available()）；
  * 取不到能力时保持 null，埋点事件留在队列内（core/tracker.js 的 no_transport 短路），
  * 与「不接真实端点」的骨架阶段行为一致。服务端载体已按《平台规则检索记录》R-8 收口为
- * **抖音云**（小程序侧 `tt.createCloud` + `Cloud.callContainer`），接入配置见下方 `CLOUD_ENV`。
+ * **抖音云**（小程序侧 `tt.createCloud` + `Cloud.callContainer`），接入配置见下方 `CLOUD_TARGETS`
+ * （dev / prod 两套云环境，按平台运行时环境自动切换）。
  */
 
 const { createStorage } = require('./core/storage.js');
 const { createSession } = require('./core/session.js');
 const { createTracker } = require('./core/tracker.js');
-const { createCloud } = require('./core/cloud.js');
+const { createCloud, resolveCloudEnv } = require('./core/cloud.js');
 const { resolveEntry } = require('./core/route.js');
 const { questionIds } = require('./core/display.js');
 
@@ -29,10 +30,17 @@ const { questionIds } = require('./core/display.js');
 const HOST = typeof tt !== 'undefined' ? tt : null;
 
 /**
- * 抖音云托管接入配置（《平台规则检索记录》R-8）：在抖音云控制台开通服务后取得 envID / serviceID 并填入。
- * 留空即视为无调用能力 —— 页面与埋点自动走降级分支，与骨架阶段行为一致，不影响编译与上线。
+ * 抖音云托管接入配置（《平台规则检索记录》R-8）：同一小程序的两套云环境，两套共用同一 serviceID。
+ * 生效环境由平台运行时判定（`tt.getEnvInfoSync().microapp.envType`，基础库 ≥ 2.21.0）——
+ * 线上版（production）走 prod，开发版 / 预览版走 dev，**取不到判据时按 prod 兜底**
+ * （宁可连线上，也绝不让线上流量误连测试环境；见 core/cloud.js 的 resolveCloudEnv）。
+ * envID 留空即视为无调用能力，页面与埋点自动走降级分支，不影响编译与上线。
+ * 小程序 appid 见根目录 project.config.json（ttd831ae8c4648e3b101）。
  */
-const CLOUD_ENV = { envID: '', serviceID: '' };
+const CLOUD_TARGETS = {
+  dev: { envID: 'env-G53ZffKomF', serviceID: '1mh6dub11u9ei' },
+  prod: { envID: 'env-FEwCR0zGmi', serviceID: '1mh6dub11u9ei' },
+};
 
 /** `getNetworkType` 为异步接口，启动时取一次并缓存，供埋点公共字段读取。 */
 let networkType = 'unknown';
@@ -66,7 +74,9 @@ App({
 
     const storage = createStorage(HOST && typeof HOST.getStorageSync === 'function' ? HOST : null);
     const session = createSession(storage, { questionIds: questionIds() });
-    const cloud = createCloud({ host: HOST, envID: CLOUD_ENV.envID, serviceID: CLOUD_ENV.serviceID });
+    // 接入配置按平台运行时环境自动选取（线上 → prod，开发/预览 → dev）
+    const cloudEnv = resolveCloudEnv(HOST, CLOUD_TARGETS);
+    const cloud = createCloud({ host: HOST, envID: cloudEnv.envID, serviceID: cloudEnv.serviceID });
 
     const tracker = createTracker({
       // 无云函数能力时保持 null：事件留在队列内（骨架阶段行为），不产生必然失败的空转请求

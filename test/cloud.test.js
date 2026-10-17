@@ -3,6 +3,7 @@
 /**
  * 云函数调用适配器单测
  * 覆盖：调用器构造（平台官方形态 tt.createCloud + Cloud.callContainer；缺 envID 或无能力 → null）、
+ *      运行时环境选配（线上 → prod，开发/预览 → dev，判据缺失或不认识 → prod 兜底）、
  *      统一信封归一（callContainer 原始返回 / 直返信封 / 包一层 result）、业务码→ok 映射、
  *      异常与非法返回的收敛、六个薄壳方法名透传、无能力时的降级（available=false, code=NO_INVOKER）。
  *
@@ -14,9 +15,39 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 
 const client = require('../miniapp/shared/client-constants.js');
-const { createCloud, resolveInvoker, unwrap } = require('../miniapp/core/cloud.js');
+const { createCloud, resolveInvoker, resolveCloudEnv, unwrap } = require('../miniapp/core/cloud.js');
 
 const OK = client.ERROR_CODES.OK;
+
+test('resolveCloudEnv：线上走 prod、开发/预览走 dev，判据缺失或不认识一律 prod 兜底', () => {
+  const targets = {
+    dev: { envID: 'env-dev', serviceID: 'svc-1' },
+    prod: { envID: 'env-prod', serviceID: 'svc-1' },
+  };
+  const withEnv = (envType) => ({ getEnvInfoSync: () => ({ microapp: { envType } }) });
+
+  assert.equal(resolveCloudEnv(withEnv('production'), targets).envID, 'env-prod', '线上版须连 prod');
+  assert.equal(resolveCloudEnv(withEnv('development'), targets).envID, 'env-dev', '开发版须连 dev');
+  assert.equal(resolveCloudEnv(withEnv('preview'), targets).envID, 'env-dev', '预览版须连 dev');
+  assert.equal(
+    resolveCloudEnv({ getEnvInfoSync: () => ({ envtype: 'development' }) }, targets).envID,
+    'env-dev',
+    '兼容扁平 / 小写写法'
+  );
+
+  // 判据缺失或不认识时绝不猜 dev —— 宁可连线上，也不能让线上流量误连测试环境
+  assert.equal(resolveCloudEnv({}, targets).envID, 'env-prod', '无人无该 API');
+  assert.equal(resolveCloudEnv(null, targets).envID, 'env-prod', 'Node / 编译期无宿主');
+  assert.equal(resolveCloudEnv(withEnv(''), targets).envID, 'env-prod', '取值空');
+  assert.equal(resolveCloudEnv(withEnv('unexpected'), targets).envID, 'env-prod', '取值不认识');
+  assert.equal(
+    resolveCloudEnv({ getEnvInfoSync: () => { throw new Error('not supported'); } }, targets).envID,
+    'env-prod',
+    '接口抛错须收敛为 prod，不得上抛'
+  );
+  assert.equal(resolveCloudEnv(withEnv('development'), { prod: targets.prod }).envID, 'env-prod', '缺 dev 配置时回落 prod');
+  assert.equal(resolveCloudEnv(withEnv('production'), null), null, 'targets 非法返回 null');
+});
 
 test('resolveInvoker：按平台官方形态构造（tt.createCloud + callContainer），缺配置或无能力时返回 null', async () => {
   assert.equal(resolveInvoker(null), null);
