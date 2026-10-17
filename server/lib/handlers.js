@@ -29,11 +29,11 @@ const { raise } = require('./errors.js');
 const { scoreArchetype } = require('./scoring.js');
 const pairing = require('./pairing.js');
 
-/** 把业务函数包成「永不抛错」的信封函数。 */
+/** 把业务函数包成「永不抛错」的信封函数（业务函数可为异步，统一 await）。 */
 function withEnvelope(fn) {
-  return (params, deps) => {
+  return async (params, deps) => {
     try {
-      return ok(fn(params || {}, deps || {}));
+      return ok(await fn(params || {}, deps || {}));
     } catch (err) {
       return fromError(err);
     }
@@ -66,7 +66,7 @@ function pairingCtx(deps) {
  * 既防重复计分，也防用户来回改选后产生两个结果。
  * 隐私：**不落库原始答案**，只落库结果（archetype_code / archetype_id）。
  */
-const computeResult = withEnvelope((params, deps) => {
+const computeResult = withEnvelope(async (params, deps) => {
   const store = requireStore(deps);
   const sessionId = params.session_id;
   const userId = params.user_pseudo_id;
@@ -77,7 +77,7 @@ const computeResult = withEnvelope((params, deps) => {
     throw raise.QUIZ_VERSION_MISMATCH(`客户端 ${params.quiz_version}，服务端 ${QUIZ_VERSION}`);
   }
 
-  const existing = store.getSession(sessionId);
+  const existing = await store.getSession(sessionId);
   if (existing) {
     return {
       session_id: sessionId,
@@ -91,7 +91,7 @@ const computeResult = withEnvelope((params, deps) => {
 
   // 计分：可能抛 ANSWER_INCOMPLETE(1001) / ANSWER_INVALID(1002)
   const code = scoreArchetype(params.answers);
-  const record = store.insertSession({
+  const record = await store.insertSession({
     session_id: sessionId,
     user_pseudo_id: userId,
     quiz_version: QUIZ_VERSION,
@@ -121,14 +121,14 @@ const computeResult = withEnvelope((params, deps) => {
  * `archetype_code` 可省：省略时从该用户最近一次落库结果读取，
  * 避免前端把结果再回传一次造成第二处结果来源。
  */
-const createInvite = withEnvelope((params, deps) => {
+const createInvite = withEnvelope(async (params, deps) => {
   const store = requireStore(deps);
   const userId = params.user_pseudo_id;
   if (!userId) throw raise.ANSWER_INVALID('缺少 user_pseudo_id');
 
   let code = params.archetype_code;
   if (!code) {
-    const session = store.findLatestSessionByUser(userId);
+    const session = await store.findLatestSessionByUser(userId);
     if (!session) throw raise.ANSWER_INCOMPLETE('该用户尚未完成测试，无法发起配对');
     code = session.archetype_code;
   }
@@ -210,7 +210,7 @@ function validateEvent(event) {
  * 服务端按 `event_id` 去重：客户端批量队列重试重放时，同一条事件不会被重复计数。
  * 非法事件逐条拒绝并给出原因，不因个别非法条目丢弃整批。
  */
-const reportEvents = withEnvelope((params, deps) => {
+const reportEvents = withEnvelope(async (params, deps) => {
   const store = requireStore(deps);
   if (!Array.isArray(params.events)) throw raise.ANSWER_INVALID('events 必须为数组');
 
@@ -224,11 +224,11 @@ const reportEvents = withEnvelope((params, deps) => {
       rejected.push({ event_id: (event && event.event_id) || null, reason });
       continue;
     }
-    if (store.seenEvent(event.event_id)) {
+    if (await store.seenEvent(event.event_id)) {
       duplicatedIds.push(event.event_id);
       continue;
     }
-    store.appendEvent(event);
+    await store.appendEvent(event);
     acceptedIds.push(event.event_id);
   }
 

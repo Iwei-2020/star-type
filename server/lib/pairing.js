@@ -61,8 +61,8 @@ function requireNormalizedCode(input) {
  * 读取配对记录并**先落盘**惰性过期。
  * 过期写入独立于后续业务事务：即便后续动作抛错，过期状态也应保留。
  */
-function loadRecord(ctx, pairCode) {
-  const record = ctx.store.getPairing(pairCode);
+async function loadRecord(ctx, pairCode) {
+  const record = await ctx.store.getPairing(pairCode);
   if (!record) throw raise.PAIR_CODE_NOT_FOUND(`邀请不存在：${pairCode}`);
   if (record.status === PENDING && ctx.now() > record.expires_at) {
     return ctx.store.updatePairing({ ...record, status: EXPIRED });
@@ -135,13 +135,13 @@ function completedView(record, isFirstCompletion) {
  * @param {{store:object, now:()=>number, randomInt?:(max:number)=>number}} ctx
  * @param {{user_pseudo_id:string, archetype_code:string}} params
  */
-function createInvite(ctx, params) {
+async function createInvite(ctx, params) {
   const userId = params.user_pseudo_id;
   if (!userId) throw raise.ANSWER_INVALID('缺少 user_pseudo_id');
   assertArchetypeCode(params.archetype_code, '发起者结果');
 
   const ts = ctx.now();
-  const pairCode = generateUniquePairCode((code) => ctx.store.pairCodeExists(code), ctx.randomInt);
+  const pairCode = await generateUniquePairCode((code) => ctx.store.pairCodeExists(code), ctx.randomInt);
 
   const record = {
     pair_code: pairCode,
@@ -157,7 +157,7 @@ function createInvite(ctx, params) {
     expires_at: ts + SESSION_TTL_MS,
     completed_at: null,
   };
-  ctx.store.insertPairing(record);
+  await ctx.store.insertPairing(record);
 
   return {
     pair_code: pairCode,
@@ -171,12 +171,12 @@ function createInvite(ctx, params) {
  * @param {object} ctx
  * @param {{pair_code:string, user_pseudo_id:string}} params
  */
-function acceptInvite(ctx, params) {
+async function acceptInvite(ctx, params) {
   const userId = params.user_pseudo_id;
   if (!userId) throw raise.ANSWER_INVALID('缺少 user_pseudo_id');
   const pairCode = requireNormalizedCode(params.pair_code);
 
-  const record = loadRecord(ctx, pairCode);
+  const record = await loadRecord(ctx, pairCode);
 
   if (record.status === EXPIRED) {
     throw raise.PAIR_EXPIRED('邀请已过期，可重新发起', { status: EXPIRED, pair_code: pairCode });
@@ -191,12 +191,14 @@ function acceptInvite(ctx, params) {
     throw raise.PAIR_ALREADY_TAKEN('该邀请已被他人接受', { pair_code: pairCode });
   }
 
+  // 首次接受用条件更新（CAS）落位，避免多实例并发下两个受邀者同时写入
   const isFirstAccept = record.invitee_id === null;
-  const updated = isFirstAccept
-    ? ctx.store.transaction((store) =>
-        store.updatePairing({ ...record, invitee_id: userId })
-      )
-    : record;
+  let updated = record;
+  if (isFirstAccept) {
+    const won = await ctx.store.claimInvitee(pairCode, userId);
+    if (!won) throw raise.PAIR_ALREADY_TAKEN('该邀请已被他人接受', { pair_code: pairCode });
+    updated = { ...record, invitee_id: userId };
+  }
 
   return { ...pendingView(updated, {}), isFirstAccept };
 }
@@ -206,9 +208,9 @@ function acceptInvite(ctx, params) {
  * @param {object} ctx
  * @param {{pair_code:string, attempt?:number}} params
  */
-function getPairStatus(ctx, params) {
+async function getPairStatus(ctx, params) {
   const pairCode = requireNormalizedCode(params.pair_code);
-  const record = loadRecord(ctx, pairCode);
+  const record = await loadRecord(ctx, pairCode);
 
   if (record.status === EXPIRED) {
     throw raise.PAIR_EXPIRED('邀请已过期，可重新发起', { status: EXPIRED, pair_code: pairCode });
@@ -231,12 +233,12 @@ function getPairStatus(ctx, params) {
  * @param {object} ctx
  * @param {{pair_code:string, user_pseudo_id:string}} params
  */
-function completePair(ctx, params) {
+async function completePair(ctx, params) {
   const userId = params.user_pseudo_id;
   if (!userId) throw raise.ANSWER_INVALID('缺少 user_pseudo_id');
   const pairCode = requireNormalizedCode(params.pair_code);
 
-  const record = loadRecord(ctx, pairCode);
+  const record = await loadRecord(ctx, pairCode);
 
   if (record.status === EXPIRED) {
     throw raise.PAIR_EXPIRED('邀请已过期，可重新发起', { status: EXPIRED, pair_code: pairCode });
@@ -258,14 +260,15 @@ function completePair(ctx, params) {
   // 受邀者未显式 accept 即直接完成的情形：此处补齐 invitee_id（迁移表第 6 行）
   const inviteeId = record.invitee_id === null ? userId : record.invitee_id;
   const inviterCode = record.initiator_code;
-  const inviteeSession = ctx.store.findLatestSessionByUser(inviteeId);
+  const inviteeSession = await ctx.store.findLatestSessionByUser(inviteeId);
   const inviteeCode = inviteeSession ? inviteeSession.archetype_code : null;
 
-  return ctx.store.transaction((store) => {
+  // 云库无跨文档事务，transaction 为「顺序执行、不回滚」；幂等由上方 COMPLETED 分支与 CAS 保证
+  return ctx.store.transaction(async (store) => {
     // 先落定受邀者归属（即使结果未齐备也要占位，避免并发被他人顶替）
     let current = record;
     if (current.invitee_id === null) {
-      current = store.updatePairing({ ...current, invitee_id: inviteeId });
+      current = await store.updatePairing({ ...current, invitee_id: inviteeId });
     }
 
     // 双方结果未齐备：不报错，返回 pending 供前端继续等待（迁移表第 8 行）
@@ -274,7 +277,7 @@ function completePair(ctx, params) {
     }
 
     // §3.3：同一对好友已有完成的同码配对 → 直接复用，不重复计算
-    const existing = store.findActivePairingByPair(current.initiator_id, inviteeId);
+    const existing = await store.findActivePairingByPair(current.initiator_id, inviteeId);
     const canReuse =
       existing &&
       existing.pair_code !== current.pair_code &&
@@ -289,7 +292,7 @@ function completePair(ctx, params) {
           return { c: s.c, pct: s.similarityPct, band: s.band };
         })();
 
-    const updated = store.updatePairing({
+    const updated = await store.updatePairing({
       ...current,
       invitee_code: inviteeCode,
       status: COMPLETED,

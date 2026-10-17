@@ -7,18 +7,20 @@
  * 注意：本接口入参**不含答案**，只读双方已落库的 archetype_code，
  * 因此不构成第二计分入口（《技术资产》§1.2 单一权威实现）。
  *
- * TODO(D-1)：store 需替换为平台数据库实现（多实例共享），内存实现仅用于本地与集成测试。
+ * 已落地(D-1)：store 由 store-provider.js 按环境选择（云库优先，降级内存并告警）；
+ *   云库无跨文档事务，幂等由 completePair 的「已完成即返回首结果」分支保证。
  */
 
-const { createStore } = require('../../lib/store.js');
+const { createRuntimeStore } = require('../../lib/store-provider.js');
 const { completePair } = require('../../lib/handlers.js');
 
-const store = createStore();
+let store = null;
 
 /**
  * 入口签名对齐平台契约（已与线上函数服务核对）：`params` 即 HTTP 请求体本身，
  * 返回值作为 Response Body；调用路径 = 文件名，即 `/completePair`。
  */
-module.exports = async function main(params) {
+module.exports = async function main(params, context) {
+  if (!store) store = createRuntimeStore(context);
   return completePair(params || {}, { store, now: Date.now });
 };

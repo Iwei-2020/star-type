@@ -3,6 +3,9 @@
 /**
  * 配对状态机单测
  * 覆盖：《测试资产》TC-PA-01～10 + §3.3 迁移表 10 行 + 事务回滚。
+ *
+ * 注意：pairing 已异步化（store 可能是云库，方法返回 Promise），故 createInvite /
+ * acceptInvite / getPairStatus / completePair 一律 `await`；`expectCode` 亦改为异步断言。
  */
 
 const test = require('node:test');
@@ -57,18 +60,19 @@ function seedResult(ctx, user, code) {
   });
 }
 
-function expectCode(fn, code, messagePattern) {
-  assert.throws(fn, (err) => {
+/** 断言异步调用以指定业务错误码 reject。 */
+async function expectCode(fn, code, messagePattern) {
+  await assert.rejects(fn, (err) => {
     assert.equal(err.code, code, `期望错误码 ${code}，实际 ${err.code}（${err.message}）`);
     if (messagePattern) assert.match(err.message, messagePattern);
     return true;
   });
 }
 
-test('TC-PA-01：创建邀请 → 8 位码、pending、有效期为 7 天', () => {
+test('TC-PA-01：创建邀请 → 8 位码、pending、有效期为 7 天', async () => {
   const ctx = makeCtx();
   seedResult(ctx, 'userA', 'ABAB');
-  const inv = createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
+  const inv = await createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
 
   assert.equal(inv.pair_code.length, 8);
   assert.equal(inv.formatted_pair_code, `${inv.pair_code.slice(0, 4)}-${inv.pair_code.slice(4)}`);
@@ -84,23 +88,23 @@ test('TC-PA-01：创建邀请 → 8 位码、pending、有效期为 7 天', () =
   assert.equal(record.completed_at, null);
 });
 
-test('TC-PA-01 补充：发起者结果非法原型码 → ANSWER_INVALID', () => {
+test('TC-PA-01 补充：发起者结果非法原型码 → ANSWER_INVALID', async () => {
   const ctx = makeCtx();
-  expectCode(
+  await expectCode(
     () => createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ZZZZ' }),
     ERROR_CODES.ANSWER_INVALID
   );
-  expectCode(
+  await expectCode(
     () => createInvite(ctx, { archetype_code: 'ABAB' }),
     ERROR_CODES.ANSWER_INVALID
   );
 });
 
-test('TC-PA-02：受邀者接受 → 写 invitee_id，状态仍 pending，isFirstAccept=true', () => {
+test('TC-PA-02：受邀者接受 → 写 invitee_id，状态仍 pending，isFirstAccept=true', async () => {
   const ctx = makeCtx();
-  const inv = createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
+  const inv = await createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
 
-  const r1 = acceptInvite(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' });
+  const r1 = await acceptInvite(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' });
   assert.equal(r1.status, 'pending');
   assert.equal(r1.isFirstAccept, true);
   assert.equal(r1.invitee_id, 'userB');
@@ -111,22 +115,22 @@ test('TC-PA-02：受邀者接受 → 写 invitee_id，状态仍 pending，isFirs
   assert.equal(record.status, 'pending');
 });
 
-test('TC-PA-02 补充：小写/带连字符的配对码可接受（归一化）', () => {
+test('TC-PA-02 补充：小写/带连字符的配对码可接受（归一化）', async () => {
   const ctx = makeCtx();
-  const inv = createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
-  const r = acceptInvite(ctx, {
+  const inv = await createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
+  const r = await acceptInvite(ctx, {
     pair_code: inv.formatted_pair_code.toLowerCase(),
     user_pseudo_id: 'userB',
   });
   assert.equal(r.status, 'pending');
 });
 
-test('TC-PA-03：受邀者未显式 accept 直接 completePair → 补齐 invitee_id 并完成（迁移表第 6 行）', () => {
+test('TC-PA-03：受邀者未显式 accept 直接 completePair → 补齐 invitee_id 并完成（迁移表第 6 行）', async () => {
   const ctx = makeCtx();
   seedResult(ctx, 'userB', 'ABAB');
-  const inv = createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
+  const inv = await createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
 
-  const r = completePair(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' });
+  const r = await completePair(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' });
   assert.equal(r.status, 'completed');
   assert.equal(r.isFirstCompletion, true);
   assert.equal(r.invitee_code, 'ABAB');
@@ -136,12 +140,12 @@ test('TC-PA-03：受邀者未显式 accept 直接 completePair → 补齐 invite
   assert.equal(record.status, 'completed');
 });
 
-test('TC-PA-04：同码双方 → C=4, P=0, 100%, 同频共振型', () => {
+test('TC-PA-04：同码双方 → C=4, P=0, 100%, 同频共振型', async () => {
   const ctx = makeCtx();
   seedResult(ctx, 'userB', 'ABAB');
-  const inv = createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
+  const inv = await createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
 
-  const r = completePair(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' });
+  const r = await completePair(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' });
   assert.equal(r.c_count, 4);
   assert.equal(r.p_count, 0);
   assert.equal(r.similarity_pct, 100);
@@ -150,24 +154,24 @@ test('TC-PA-04：同码双方 → C=4, P=0, 100%, 同频共振型', () => {
   assert.equal(r.completed_at, T0);
 });
 
-test('TC-PA-04 补充：异码双方 → 91.7% 高默契型', () => {
+test('TC-PA-04 补充：异码双方 → 91.7% 高默契型', async () => {
   const ctx = makeCtx();
   seedResult(ctx, 'userB', 'ABAA');
-  const inv = createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
+  const inv = await createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
 
-  const r = completePair(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' });
+  const r = await completePair(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' });
   assert.equal(r.c_count, 3);
   assert.equal(r.p_count, 1);
   assert.equal(r.similarity_pct, 91.7);
   assert.equal(r.band_label, '高默契型');
 });
 
-test('TC-PA-05：受邀者结果未齐备 → 不报错，返回 ready:false 并占位 invitee_id（迁移表第 8 行）', () => {
+test('TC-PA-05：受邀者结果未齐备 → 不报错，返回 ready:false 并占位 invitee_id（迁移表第 8 行）', async () => {
   const ctx = makeCtx();
-  const inv = createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
+  const inv = await createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
 
   // userB 尚未落库结果
-  const r = completePair(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' });
+  const r = await completePair(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' });
   assert.equal(r.status, 'pending');
   assert.equal(r.ready, false);
   assert.equal(r.has_invitee, true);
@@ -178,14 +182,14 @@ test('TC-PA-05：受邀者结果未齐备 → 不报错，返回 ready:false 并
   assert.equal(record.status, 'pending');
 });
 
-test('TC-PA-05 补充：结果就绪后重新调用 → 正常完成', () => {
+test('TC-PA-05 补充：结果就绪后重新调用 → 正常完成', async () => {
   const ctx = makeCtx();
-  const inv = createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
-  const first = completePair(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' });
+  const inv = await createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
+  const first = await completePair(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' });
   assert.equal(first.ready, false);
 
   seedResult(ctx, 'userB', 'BABA');
-  const second = completePair(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' });
+  const second = await completePair(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' });
   assert.equal(second.status, 'completed');
   assert.equal(second.isFirstCompletion, true);
   assert.equal(second.c_count, 0);
@@ -193,17 +197,17 @@ test('TC-PA-05 补充：结果就绪后重新调用 → 正常完成', () => {
   assert.equal(second.band_label, '极致互补型');
 });
 
-test('TC-PA-06：完成后重复调用 → 幂等，返回首次结果且不重算、不重复上报（迁移表第 9 行）', () => {
+test('TC-PA-06：完成后重复调用 → 幂等，返回首次结果且不重算、不重复上报（迁移表第 9 行）', async () => {
   const ctx = makeCtx();
   seedResult(ctx, 'userB', 'ABAB');
-  const inv = createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
+  const inv = await createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
 
-  const first = completePair(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' });
+  const first = await completePair(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' });
   assert.equal(first.isFirstCompletion, true);
   const stamp = ctx.store.getPairing(inv.pair_code).completed_at;
 
   ctx.advance(60_000);
-  const second = completePair(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' });
+  const second = await completePair(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' });
   assert.equal(second.isFirstCompletion, false);
   assert.equal(second.c_count, first.c_count);
   assert.equal(second.similarity_pct, first.similarity_pct);
@@ -211,81 +215,81 @@ test('TC-PA-06：完成后重复调用 → 幂等，返回首次结果且不重�
   assert.equal(ctx.store.getPairing(inv.pair_code).completed_at, stamp, 'completed_at 不应被刷新');
 });
 
-test('TC-PA-07：过期 → getPairStatus 抛 PAIR_EXPIRED(2002)，且记录惰性落为 expired（迁移表第 5 行）', () => {
+test('TC-PA-07：过期 → getPairStatus 抛 PAIR_EXPIRED(2002)，且记录惰性落为 expired（迁移表第 5 行）', async () => {
   const ctx = makeCtx();
-  const inv = createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
+  const inv = await createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
 
-  assert.equal(getPairStatus(ctx, { pair_code: inv.pair_code }).status, 'pending');
+  assert.equal((await getPairStatus(ctx, { pair_code: inv.pair_code })).status, 'pending');
 
   ctx.advance(SESSION_TTL_MS + 1);
-  expectCode(() => getPairStatus(ctx, { pair_code: inv.pair_code }), ERROR_CODES.PAIR_EXPIRED);
+  await expectCode(() => getPairStatus(ctx, { pair_code: inv.pair_code }), ERROR_CODES.PAIR_EXPIRED);
   assert.equal(ctx.store.getPairing(inv.pair_code).status, 'expired');
 });
 
-test('TC-PA-07 补充：过期判定用服务端时间，恰好等于 expires_at 时仍有效（用 > 而非 >=）', () => {
+test('TC-PA-07 补充：过期判定用服务端时间，恰好等于 expires_at 时仍有效（用 > 而非 >=）', async () => {
   const ctx = makeCtx();
-  const inv = createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
+  const inv = await createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
   ctx.setNow(inv.expires_at);
-  assert.equal(getPairStatus(ctx, { pair_code: inv.pair_code }).status, 'pending');
+  assert.equal((await getPairStatus(ctx, { pair_code: inv.pair_code })).status, 'pending');
 });
 
-test('TC-PA-08：过期后 acceptInvite / completePair 均被拒（迁移表第 10 行）', () => {
+test('TC-PA-08：过期后 acceptInvite / completePair 均被拒（迁移表第 10 行）', async () => {
   const ctx = makeCtx();
   seedResult(ctx, 'userB', 'ABAB');
-  const inv = createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
+  const inv = await createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
   ctx.advance(SESSION_TTL_MS + 1);
 
-  expectCode(() => acceptInvite(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' }), ERROR_CODES.PAIR_EXPIRED);
-  expectCode(() => completePair(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' }), ERROR_CODES.PAIR_EXPIRED);
+  await expectCode(() => acceptInvite(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' }), ERROR_CODES.PAIR_EXPIRED);
+  await expectCode(() => completePair(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' }), ERROR_CODES.PAIR_EXPIRED);
 });
 
-test('TC-PA-09：自配对默认关闭 → 2003（acceptInvite 与 completePair 两处）', () => {
+test('TC-PA-09：自配对默认关闭 → 2003（acceptInvite 与 completePair 两处）', async () => {
   const ctx = makeCtx();
   seedResult(ctx, 'userA', 'ABAB');
-  const inv = createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
+  const inv = await createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
 
-  expectCode(() => acceptInvite(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userA' }), ERROR_CODES.PAIR_SELF_NOT_ALLOWED);
-  expectCode(() => completePair(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userA' }), ERROR_CODES.PAIR_SELF_NOT_ALLOWED);
+  await expectCode(() => acceptInvite(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userA' }), ERROR_CODES.PAIR_SELF_NOT_ALLOWED);
+  await expectCode(() => completePair(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userA' }), ERROR_CODES.PAIR_SELF_NOT_ALLOWED);
   assert.equal(ctx.store.getPairing(inv.pair_code).invitee_id, null, '自配对被拒后不应留下 invitee_id');
 });
 
-test('TC-PA-10：已被他人接受 → 2004（迁移表第 4 行）', () => {
+test('TC-PA-10：已被他人接受 → 2004（迁移表第 4 行）', async () => {
   const ctx = makeCtx();
-  const inv = createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
-  acceptInvite(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' });
+  const inv = await createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
+  await acceptInvite(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' });
 
-  expectCode(() => acceptInvite(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userC' }), ERROR_CODES.PAIR_ALREADY_TAKEN);
+  await expectCode(() => acceptInvite(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userC' }), ERROR_CODES.PAIR_ALREADY_TAKEN);
   assert.equal(ctx.store.getPairing(inv.pair_code).invitee_id, 'userB', '拒绝后不应覆盖原受邀者');
 });
 
-test('TC-PA-10 补充：同一受邀者重复接受 → 幂等成功，isFirstAccept=false（迁移表第 3 行）', () => {
+test('TC-PA-10 补充：同一受邀者重复接受 → 幂等成功，isFirstAccept=false（迁移表第 3 行）', async () => {
   const ctx = makeCtx();
-  const inv = createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
+  const inv = await createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
 
-  const r1 = acceptInvite(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' });
+  const r1 = await acceptInvite(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' });
   assert.equal(r1.isFirstAccept, true);
-  const r2 = acceptInvite(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' });
+  const r2 = await acceptInvite(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' });
   assert.equal(r2.status, 'pending');
   assert.equal(r2.isFirstAccept, false);
 });
 
-test('TC-PA-10 补充：已完成的邀请再次 accept → 返回 completed（幂等读取）', () => {
+test('TC-PA-10 补充：已完成的邀请再次 accept → 返回 completed（幂等读取）', async () => {
   const ctx = makeCtx();
   seedResult(ctx, 'userB', 'ABAB');
-  const inv = createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
-  completePair(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' });
+  const inv = await createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
+  await completePair(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' });
 
-  const r = acceptInvite(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' });
+  const r = await acceptInvite(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' });
   assert.equal(r.status, 'completed');
   assert.equal(r.band_label, '同频共振型');
 });
 
-test('邀请不存在 / 配对码不可用 → 2001，并把拒绝原因放进 meta', () => {
+test('邀请不存在 / 配对码不可用 → 2001，并把拒绝原因放进 meta', async () => {
   const ctx = makeCtx();
-  expectCode(() => acceptInvite(ctx, { pair_code: 'ABCDEFGH', user_pseudo_id: 'userB' }), ERROR_CODES.PAIR_CODE_NOT_FOUND);
-  expectCode(() => getPairStatus(ctx, { pair_code: 'ABCDEFGH' }), ERROR_CODES.PAIR_CODE_NOT_FOUND);
+  await expectCode(() => acceptInvite(ctx, { pair_code: 'ABCDEFGH', user_pseudo_id: 'userB' }), ERROR_CODES.PAIR_CODE_NOT_FOUND);
+  await expectCode(() => getPairStatus(ctx, { pair_code: 'ABCDEFGH' }), ERROR_CODES.PAIR_CODE_NOT_FOUND);
 
-  assert.throws(
+  await assert.rejects(
     () => acceptInvite(ctx, { pair_code: 'K7QXI9T2', user_pseudo_id: 'userB' }),
     (err) => {
       assert.equal(err.code, ERROR_CODES.PAIR_CODE_NOT_FOUND);
@@ -293,7 +297,7 @@ test('邀请不存在 / 配对码不可用 → 2001，并把拒绝原因放进 m
       return true;
     }
   );
-  assert.throws(
+  await assert.rejects(
     () => acceptInvite(ctx, { pair_code: 'K7QX2M9', user_pseudo_id: 'userB' }),
     (err) => {
       assert.equal(err.code, ERROR_CODES.PAIR_CODE_NOT_FOUND);
@@ -301,64 +305,64 @@ test('邀请不存在 / 配对码不可用 → 2001，并把拒绝原因放进 m
       return true;
     }
   );
-  expectCode(() => acceptInvite(ctx, { pair_code: '', user_pseudo_id: 'userB' }), ERROR_CODES.PAIR_CODE_NOT_FOUND);
+  await expectCode(() => acceptInvite(ctx, { pair_code: '', user_pseudo_id: 'userB' }), ERROR_CODES.PAIR_CODE_NOT_FOUND);
 });
 
-test('§3.3 复用：同一对好友二次配对 → 复用已完成结果，不重复计算', () => {
+test('§3.3 复用：同一对好友二次配对 → 复用已完成结果，不重复计算', async () => {
   const ctx = makeCtx();
   seedResult(ctx, 'userA', 'ABAB');
   seedResult(ctx, 'userB', 'ABAA');
 
-  const inv1 = createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
-  const first = completePair(ctx, { pair_code: inv1.pair_code, user_pseudo_id: 'userB' });
+  const inv1 = await createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
+  const first = await completePair(ctx, { pair_code: inv1.pair_code, user_pseudo_id: 'userB' });
   assert.equal(first.similarity_pct, 91.7);
 
   // 同一对好友重新发起 → 新 pair_code，但结果复用
-  const inv2 = createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
-  const second = completePair(ctx, { pair_code: inv2.pair_code, user_pseudo_id: 'userB' });
+  const inv2 = await createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
+  const second = await completePair(ctx, { pair_code: inv2.pair_code, user_pseudo_id: 'userB' });
   assert.equal(second.status, 'completed');
   assert.equal(second.similarity_pct, 91.7);
   assert.equal(second.band_label, '高默契型');
   assert.notEqual(inv2.pair_code, inv1.pair_code);
 });
 
-test('§3.3 复用：复合索引指向最新有效记录，且过期记录不占索引', () => {
+test('§3.3 复用：复合索引指向最新有效记录，且过期记录不占索引', async () => {
   const ctx = makeCtx();
-  const inv1 = createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
-  acceptInvite(ctx, { pair_code: inv1.pair_code, user_pseudo_id: 'userB' });
+  const inv1 = await createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
+  await acceptInvite(ctx, { pair_code: inv1.pair_code, user_pseudo_id: 'userB' });
   assert.equal(ctx.store.findActivePairingByPair('userA', 'userB').pair_code, inv1.pair_code);
 
   ctx.advance(SESSION_TTL_MS + 1);
   // getPairStatus 对过期记录抛 2002，同时惰性把记录置为 expired
-  expectCode(() => getPairStatus(ctx, { pair_code: inv1.pair_code }), ERROR_CODES.PAIR_EXPIRED);
+  await expectCode(() => getPairStatus(ctx, { pair_code: inv1.pair_code }), ERROR_CODES.PAIR_EXPIRED);
   assert.equal(ctx.store.findActivePairingByPair('userA', 'userB'), null, 'expired 记录应退出复合索引');
   assert.equal(ctx.store.getPairing(inv1.pair_code).status, 'expired');
 });
 
-test('调用者既非发起者也非受邀者 → 拒绝', () => {
+test('调用者既非发起者也非受邀者 → 拒绝', async () => {
   const ctx = makeCtx();
   seedResult(ctx, 'userB', 'ABAB');
-  const inv = createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
-  acceptInvite(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' });
+  const inv = await createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
+  await acceptInvite(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' });
 
-  expectCode(() => completePair(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userC' }), ERROR_CODES.PAIR_CODE_NOT_FOUND);
+  await expectCode(() => completePair(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userC' }), ERROR_CODES.PAIR_CODE_NOT_FOUND);
 });
 
-test('发起者可触发收口（受邀者已落库结果时）', () => {
+test('发起者可触发收口（受邀者已落库结果时）', async () => {
   const ctx = makeCtx();
   seedResult(ctx, 'userB', 'BABA');
-  const inv = createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
-  acceptInvite(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' });
+  const inv = await createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
+  await acceptInvite(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' });
 
-  const r = completePair(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userA' });
+  const r = await completePair(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userA' });
   assert.equal(r.status, 'completed');
   assert.equal(r.invitee_code, 'BABA');
 });
 
-test('事务回滚：更新失败时配对记录不被部分写入', () => {
+test('事务回滚：更新失败时配对记录不被部分写入', async () => {
   const ctx = makeCtx();
   seedResult(ctx, 'userB', 'ABAB');
-  const inv = createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
+  const inv = await createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
   const before = ctx.store.getPairing(inv.pair_code);
   assert.equal(before.invitee_id, null);
 
@@ -367,7 +371,7 @@ test('事务回滚：更新失败时配对记录不被部分写入', () => {
     throw new Error('injected failure');
   };
 
-  assert.throws(() => completePair(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' }), /injected failure/);
+  await assert.rejects(() => completePair(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' }), /injected failure/);
   assert.deepEqual(ctx.store.getPairing(inv.pair_code), before, '事务应整体回滚，不留下部分写入');
 });
 
@@ -386,6 +390,23 @@ test('事务回滚：store.transaction 原语在抛错后还原 sessions / pairi
   assert.equal(ctx.store.getSession('s-x'), null);
 });
 
+test('事务回滚：store.transaction 支持异步回调（云库路径），reject 时同样还原', async () => {
+  const ctx = makeCtx();
+  const statsBefore = ctx.store.stats();
+
+  await assert.rejects(
+    () =>
+      ctx.store.transaction(async (store) => {
+        await store.insertSession({ session_id: 's-y', user_pseudo_id: 'u', archetype_code: 'AAAA', ts: T0 });
+        throw new Error('async boom');
+      }),
+    /async boom/
+  );
+
+  assert.deepEqual(ctx.store.stats(), statsBefore);
+  assert.equal(ctx.store.getSession('s-y'), null);
+});
+
 test('轮询退避序列：3s → 6s → 12s → 30s，超出上限取 30s', () => {
   assert.deepEqual(
     POLL_BACKOFF_MS,
@@ -399,18 +420,18 @@ test('轮询退避序列：3s → 6s → 12s → 30s，超出上限取 30s', () 
   assert.equal(nextPollDelay(-5), 3000);
 });
 
-test('getPairStatus：pending 返回退避时长，completed 返回完整结果', () => {
+test('getPairStatus：pending 返回退避时长，completed 返回完整结果', async () => {
   const ctx = makeCtx();
   seedResult(ctx, 'userB', 'ABAB');
-  const inv = createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
+  const inv = await createInvite(ctx, { user_pseudo_id: 'userA', archetype_code: 'ABAB' });
 
-  const pending = getPairStatus(ctx, { pair_code: inv.pair_code, attempt: 1 });
+  const pending = await getPairStatus(ctx, { pair_code: inv.pair_code, attempt: 1 });
   assert.equal(pending.status, 'pending');
   assert.equal(pending.has_invitee, false);
   assert.equal(pending.retry_after_ms, 6000);
 
-  completePair(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' });
-  const done = getPairStatus(ctx, { pair_code: inv.pair_code });
+  await completePair(ctx, { pair_code: inv.pair_code, user_pseudo_id: 'userB' });
+  const done = await getPairStatus(ctx, { pair_code: inv.pair_code });
   assert.equal(done.status, 'completed');
   assert.equal(done.initiator_code, 'ABAB');
   assert.equal(done.invitee_code, 'ABAB');

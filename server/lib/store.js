@@ -8,8 +8,12 @@
  *
  * 后续替换为云数据库时只需重写本文件（保持方法签名），上层逻辑不动。
  *
- * TODO(D-1)：云数据库（文档型）无跨文档事务。落地到云函数时，`transaction` 需改为
- *   「幂等重放 + 补偿」策略，或改用平台提供的事务能力。**此处不虚构云侧事务语义。**
+ * TODO(D-1)：云数据库（文档型）无跨文档事务。云库实现（store-cloud.js）已把 `transaction`
+ *   降级为「顺序执行、不回滚」，幂等性由业务层保证。**不虚构云侧事务语义。**
+ *
+ * `transaction` 既接受**同步回调**（就地快照回滚），也接受**异步回调**（云库路径下
+ * store 方法返回 Promise）：异步回调 reject 时同样整体回滚，故上层的 `await store.transaction(...)`
+ * 对两种 store 语义一致。
  */
 
 const { raise } = require('./errors.js');
@@ -114,6 +118,18 @@ function createStore() {
     },
 
     /**
+     * 先到先得：仅当 `invitee_id` 仍为 null 时写入。
+     * 与云库实现的 CAS（`where({pair_code, invitee_id:null}).update`）语义一致。
+     * @returns {boolean} true=本次写入生效；false=已被他人抢先
+     */
+    claimInvitee(pairCode, inviteeId) {
+      const rec = state.pairings.get(pairCode);
+      if (!rec || rec.invitee_id !== null) return false;
+      api.updatePairing({ ...clone(rec), invitee_id: inviteeId });
+      return true;
+    },
+
+    /**
      * 按 (发起者, 受邀者) 查未失效的配对记录。
      * 语义来源（§3.3）：同一用户对同一好友重复配对 → 直接复用已完成记录；
      * 已有 expired 记录则视为新配对，允许新建（故 expired 不占复合索引）。
@@ -139,7 +155,8 @@ function createStore() {
 
     /**
      * 事务快照 + 回滚。fn 抛错时，sessions / pairings / 复合索引整体还原。
-     * @param {(store:object)=>any} fn
+     * 同步回调就地回滚；异步回调（返回 Promise）在 reject 时回滚，两种形态语义一致。
+     * @param {(store:object)=>any|Promise<any>} fn
      */
     transaction(fn) {
       const snapshot = {
@@ -149,16 +166,31 @@ function createStore() {
         eventIds: new Set(state.eventIds),
         events: clone(state.events),
       };
-      try {
-        return fn(api);
-      } catch (err) {
+      const rollback = () => {
         state.sessions = snapshot.sessions;
         state.pairings = snapshot.pairings;
         state.pairIndex = snapshot.pairIndex;
         state.eventIds = snapshot.eventIds;
         state.events = snapshot.events;
+      };
+
+      let result;
+      try {
+        result = fn(api);
+      } catch (err) {
+        rollback();
         throw err;
       }
+      if (result && typeof result.then === 'function') {
+        return result.then(
+          (value) => value,
+          (err) => {
+            rollback();
+            throw err;
+          }
+        );
+      }
+      return result;
     },
 
     // ── 测试与运维辅助 ──

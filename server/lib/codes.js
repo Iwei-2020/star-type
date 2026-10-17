@@ -90,14 +90,18 @@ function formatPairCode(code) {
 /**
  * 生成一个在 `exists` 判定下未被占用的配对码。
  * 冲突重试上限 `CODE_RETRY_LIMIT`，超出即抛出 SERVER_ERROR（应由运维介入排查）。
- * @param {(code:string)=>boolean} exists 唯一性判定（通常查 pair_code 唯一索引）
+ *
+ * `exists` 可同步（内存 store 查 map）或异步（云库查 `_id`）；统一 `await`，
+ * 两种 store 共用同一套生成逻辑。
+ *
+ * @param {(code:string)=>boolean|Promise<boolean>} exists 唯一性判定（通常查 pair_code 唯一索引）
  * @param {(max:number)=>number} [randomInt]
- * @returns {string}
+ * @returns {Promise<string>}
  */
-function generateUniquePairCode(exists, randomInt = crypto.randomInt) {
+async function generateUniquePairCode(exists, randomInt = crypto.randomInt) {
   for (let attempt = 0; attempt < CODE_RETRY_LIMIT; attempt++) {
     const code = generatePairCode(randomInt);
-    if (!exists(code)) return code;
+    if (!(await exists(code))) return code;
   }
   throw raise.SERVER_ERROR(`配对码生成连续 ${CODE_RETRY_LIMIT} 次冲突`);
 }

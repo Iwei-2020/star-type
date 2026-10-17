@@ -63,10 +63,10 @@ test('生成：默认随机源的产物形态合法（抽样 200 次）', () => 
   assert.ok(seen.size > 190, '200 次抽样不应大量碰撞');
 });
 
-test('唯一性重试：首次碰撞后取到未占用码', () => {
+test('唯一性重试：首次碰撞后取到未占用码', async () => {
   // 第一次生成 ABCDEFGH（下标 0–7），被占；第二次生成 JKMNPQRS（下标 8–15），空闲
   // 注意下标 10 是 M —— L 已被字母表排除
-  const code = generateUniquePairCode(
+  const code = await generateUniquePairCode(
     (candidate) => candidate === 'ABCDEFGH',
     sequenceRandomInt([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])
   );
@@ -74,15 +74,25 @@ test('唯一性重试：首次碰撞后取到未占用码', () => {
   assert.equal(code, codeFromIndices([8, 9, 10, 11, 12, 13, 14, 15]));
 });
 
-test('唯一性重试：连续冲突达上限后抛 SERVER_ERROR', () => {
-  assert.throws(
-    () => generateUniquePairCode(() => true, sequenceRandomInt([0])),
+test('唯一性重试：连续冲突达上限后抛 SERVER_ERROR', async () => {
+  await assert.rejects(
+    generateUniquePairCode(() => true, sequenceRandomInt([0])),
     (err) => {
       assert.equal(err.code, ERROR_CODES.SERVER_ERROR);
       assert.match(err.message, new RegExp(`连续 ${CODE_RETRY_LIMIT} 次冲突`));
       return true;
     }
   );
+});
+
+test('唯一性重试：exists 判定可为异步（云库查 _id 的路径）', async () => {
+  let calls = 0;
+  const code = await generateUniquePairCode(async (candidate) => {
+    calls += 1;
+    return candidate === 'ABCDEFGH';
+  }, sequenceRandomInt([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]));
+  assert.equal(code, 'JKMNPQRS');
+  assert.equal(calls, 2, '异步判定应被逐码 await');
 });
 
 test('归一化：小写与带连字符输入可归一化（展示态 → 存储态）', () => {

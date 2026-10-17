@@ -25,6 +25,13 @@ const ENTRY_DIR = path.join(ROOT, 'server/functions');
 const LIB_DIR = path.join(ROOT, 'server/lib');
 /** 入口依赖的仓库根共享常量（与 server/lib 一起打入产物）。 */
 const SHARED_FILES = ['shared/constants.js'];
+/**
+ * 云端函数项目的唯一运行时依赖：抖音云云数据库服务端 SDK。
+ * 仅 `server/lib/store-cloud.js` 懒加载使用（本地/单测环境不装，故不会让 npm test 挂掉）；
+ * 由平台按本 `dependencies` 在部署时安装（`yarn add @open-dy/node-server-sdk`）。
+ * 升级此依赖时同步更新此处版本号。
+ */
+const CLOUD_SDK_DEP = { '@open-dy/node-server-sdk': '^1.2.2' };
 const OUT_DIR = path.join(ROOT, 'build/cloud-functions');
 const CHECK_ONLY = process.argv.includes('--check');
 
@@ -125,7 +132,7 @@ function renderBundle(entry, modules) {
   return `${lines.join('\n')}\n`;
 }
 
-/** 云端函数项目所需的 `package.json`（本产物零运行时依赖；版本跟随根 package.json）。 */
+/** 云端函数项目所需的 `package.json`（声明云数据库 SDK 依赖；版本跟随根 package.json）。 */
 function renderPackageJson() {
   const root = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
   const pkg = {
@@ -133,6 +140,7 @@ function renderPackageJson() {
     version: root.version,
     private: true,
     description: '抖音云函数服务部署产物（由 tools/gen-cloud-functions.js 生成，禁止手改）',
+    dependencies: CLOUD_SDK_DEP,
   };
   return `${JSON.stringify(pkg, null, 2)}\n`;
 }

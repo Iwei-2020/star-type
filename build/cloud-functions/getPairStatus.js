@@ -1,7 +1,7 @@
 /**
  * 抖音云函数服务产物：getPairStatus.js
  *
- * **构建期生成，禁止手改**。源：server/lib/codes.js / server/lib/envelope.js / server/lib/errors.js / server/lib/handlers.js / server/lib/pairing.js / server/lib/scoring.js / server/lib/similarity.js / server/lib/store.js / shared/constants.js / server/functions/getPairStatus/index.js
+ * **构建期生成，禁止手改**。源：server/lib/codes.js / server/lib/envelope.js / server/lib/errors.js / server/lib/handlers.js / server/lib/pairing.js / server/lib/scoring.js / server/lib/similarity.js / server/lib/store-cloud.js / server/lib/store-provider.js / server/lib/store.js / shared/constants.js / server/functions/getPairStatus/index.js
  * 改完源后重跑 `node tools/gen-cloud-functions.js`（生成脚本：tools/gen-cloud-functions.js）。
  *
  * 平台契约（已与线上函数服务核对）：入口 `module.exports = async function (params)`，
@@ -119,14 +119,18 @@ function formatPairCode(code) {
 /**
  * 生成一个在 `exists` 判定下未被占用的配对码。
  * 冲突重试上限 `CODE_RETRY_LIMIT`，超出即抛出 SERVER_ERROR（应由运维介入排查）。
- * @param {(code:string)=>boolean} exists 唯一性判定（通常查 pair_code 唯一索引）
+ *
+ * `exists` 可同步（内存 store 查 map）或异步（云库查 `_id`）；统一 `await`，
+ * 两种 store 共用同一套生成逻辑。
+ *
+ * @param {(code:string)=>boolean|Promise<boolean>} exists 唯一性判定（通常查 pair_code 唯一索引）
  * @param {(max:number)=>number} [randomInt]
- * @returns {string}
+ * @returns {Promise<string>}
  */
-function generateUniquePairCode(exists, randomInt = crypto.randomInt) {
+async function generateUniquePairCode(exists, randomInt = crypto.randomInt) {
   for (let attempt = 0; attempt < CODE_RETRY_LIMIT; attempt++) {
     const code = generatePairCode(randomInt);
-    if (!exists(code)) return code;
+    if (!(await exists(code))) return code;
   }
   throw raise.SERVER_ERROR(`配对码生成连续 ${CODE_RETRY_LIMIT} 次冲突`);
 }
@@ -266,11 +270,11 @@ const { raise } = __req('server/lib/errors.js');
 const { scoreArchetype } = __req('server/lib/scoring.js');
 const pairing = __req('server/lib/pairing.js');
 
-/** 把业务函数包成「永不抛错」的信封函数。 */
+/** 把业务函数包成「永不抛错」的信封函数（业务函数可为异步，统一 await）。 */
 function withEnvelope(fn) {
-  return (params, deps) => {
+  return async (params, deps) => {
     try {
-      return ok(fn(params || {}, deps || {}));
+      return ok(await fn(params || {}, deps || {}));
     } catch (err) {
       return fromError(err);
     }
@@ -303,7 +307,7 @@ function pairingCtx(deps) {
  * 既防重复计分，也防用户来回改选后产生两个结果。
  * 隐私：**不落库原始答案**，只落库结果（archetype_code / archetype_id）。
  */
-const computeResult = withEnvelope((params, deps) => {
+const computeResult = withEnvelope(async (params, deps) => {
   const store = requireStore(deps);
   const sessionId = params.session_id;
   const userId = params.user_pseudo_id;
@@ -314,7 +318,7 @@ const computeResult = withEnvelope((params, deps) => {
     throw raise.QUIZ_VERSION_MISMATCH(`客户端 ${params.quiz_version}，服务端 ${QUIZ_VERSION}`);
   }
 
-  const existing = store.getSession(sessionId);
+  const existing = await store.getSession(sessionId);
   if (existing) {
     return {
       session_id: sessionId,
@@ -328,7 +332,7 @@ const computeResult = withEnvelope((params, deps) => {
 
   // 计分：可能抛 ANSWER_INCOMPLETE(1001) / ANSWER_INVALID(1002)
   const code = scoreArchetype(params.answers);
-  const record = store.insertSession({
+  const record = await store.insertSession({
     session_id: sessionId,
     user_pseudo_id: userId,
     quiz_version: QUIZ_VERSION,
@@ -358,14 +362,14 @@ const computeResult = withEnvelope((params, deps) => {
  * `archetype_code` 可省：省略时从该用户最近一次落库结果读取，
  * 避免前端把结果再回传一次造成第二处结果来源。
  */
-const createInvite = withEnvelope((params, deps) => {
+const createInvite = withEnvelope(async (params, deps) => {
   const store = requireStore(deps);
   const userId = params.user_pseudo_id;
   if (!userId) throw raise.ANSWER_INVALID('缺少 user_pseudo_id');
 
   let code = params.archetype_code;
   if (!code) {
-    const session = store.findLatestSessionByUser(userId);
+    const session = await store.findLatestSessionByUser(userId);
     if (!session) throw raise.ANSWER_INCOMPLETE('该用户尚未完成测试，无法发起配对');
     code = session.archetype_code;
   }
@@ -447,7 +451,7 @@ function validateEvent(event) {
  * 服务端按 `event_id` 去重：客户端批量队列重试重放时，同一条事件不会被重复计数。
  * 非法事件逐条拒绝并给出原因，不因个别非法条目丢弃整批。
  */
-const reportEvents = withEnvelope((params, deps) => {
+const reportEvents = withEnvelope(async (params, deps) => {
   const store = requireStore(deps);
   if (!Array.isArray(params.events)) throw raise.ANSWER_INVALID('events 必须为数组');
 
@@ -461,11 +465,11 @@ const reportEvents = withEnvelope((params, deps) => {
       rejected.push({ event_id: (event && event.event_id) || null, reason });
       continue;
     }
-    if (store.seenEvent(event.event_id)) {
+    if (await store.seenEvent(event.event_id)) {
       duplicatedIds.push(event.event_id);
       continue;
     }
-    store.appendEvent(event);
+    await store.appendEvent(event);
     acceptedIds.push(event.event_id);
   }
 
@@ -556,8 +560,8 @@ function requireNormalizedCode(input) {
  * 读取配对记录并**先落盘**惰性过期。
  * 过期写入独立于后续业务事务：即便后续动作抛错，过期状态也应保留。
  */
-function loadRecord(ctx, pairCode) {
-  const record = ctx.store.getPairing(pairCode);
+async function loadRecord(ctx, pairCode) {
+  const record = await ctx.store.getPairing(pairCode);
   if (!record) throw raise.PAIR_CODE_NOT_FOUND(`邀请不存在：${pairCode}`);
   if (record.status === PENDING && ctx.now() > record.expires_at) {
     return ctx.store.updatePairing({ ...record, status: EXPIRED });
@@ -630,13 +634,13 @@ function completedView(record, isFirstCompletion) {
  * @param {{store:object, now:()=>number, randomInt?:(max:number)=>number}} ctx
  * @param {{user_pseudo_id:string, archetype_code:string}} params
  */
-function createInvite(ctx, params) {
+async function createInvite(ctx, params) {
   const userId = params.user_pseudo_id;
   if (!userId) throw raise.ANSWER_INVALID('缺少 user_pseudo_id');
   assertArchetypeCode(params.archetype_code, '发起者结果');
 
   const ts = ctx.now();
-  const pairCode = generateUniquePairCode((code) => ctx.store.pairCodeExists(code), ctx.randomInt);
+  const pairCode = await generateUniquePairCode((code) => ctx.store.pairCodeExists(code), ctx.randomInt);
 
   const record = {
     pair_code: pairCode,
@@ -652,7 +656,7 @@ function createInvite(ctx, params) {
     expires_at: ts + SESSION_TTL_MS,
     completed_at: null,
   };
-  ctx.store.insertPairing(record);
+  await ctx.store.insertPairing(record);
 
   return {
     pair_code: pairCode,
@@ -666,12 +670,12 @@ function createInvite(ctx, params) {
  * @param {object} ctx
  * @param {{pair_code:string, user_pseudo_id:string}} params
  */
-function acceptInvite(ctx, params) {
+async function acceptInvite(ctx, params) {
   const userId = params.user_pseudo_id;
   if (!userId) throw raise.ANSWER_INVALID('缺少 user_pseudo_id');
   const pairCode = requireNormalizedCode(params.pair_code);
 
-  const record = loadRecord(ctx, pairCode);
+  const record = await loadRecord(ctx, pairCode);
 
   if (record.status === EXPIRED) {
     throw raise.PAIR_EXPIRED('邀请已过期，可重新发起', { status: EXPIRED, pair_code: pairCode });
@@ -686,12 +690,14 @@ function acceptInvite(ctx, params) {
     throw raise.PAIR_ALREADY_TAKEN('该邀请已被他人接受', { pair_code: pairCode });
   }
 
+  // 首次接受用条件更新（CAS）落位，避免多实例并发下两个受邀者同时写入
   const isFirstAccept = record.invitee_id === null;
-  const updated = isFirstAccept
-    ? ctx.store.transaction((store) =>
-        store.updatePairing({ ...record, invitee_id: userId })
-      )
-    : record;
+  let updated = record;
+  if (isFirstAccept) {
+    const won = await ctx.store.claimInvitee(pairCode, userId);
+    if (!won) throw raise.PAIR_ALREADY_TAKEN('该邀请已被他人接受', { pair_code: pairCode });
+    updated = { ...record, invitee_id: userId };
+  }
 
   return { ...pendingView(updated, {}), isFirstAccept };
 }
@@ -701,9 +707,9 @@ function acceptInvite(ctx, params) {
  * @param {object} ctx
  * @param {{pair_code:string, attempt?:number}} params
  */
-function getPairStatus(ctx, params) {
+async function getPairStatus(ctx, params) {
   const pairCode = requireNormalizedCode(params.pair_code);
-  const record = loadRecord(ctx, pairCode);
+  const record = await loadRecord(ctx, pairCode);
 
   if (record.status === EXPIRED) {
     throw raise.PAIR_EXPIRED('邀请已过期，可重新发起', { status: EXPIRED, pair_code: pairCode });
@@ -726,12 +732,12 @@ function getPairStatus(ctx, params) {
  * @param {object} ctx
  * @param {{pair_code:string, user_pseudo_id:string}} params
  */
-function completePair(ctx, params) {
+async function completePair(ctx, params) {
   const userId = params.user_pseudo_id;
   if (!userId) throw raise.ANSWER_INVALID('缺少 user_pseudo_id');
   const pairCode = requireNormalizedCode(params.pair_code);
 
-  const record = loadRecord(ctx, pairCode);
+  const record = await loadRecord(ctx, pairCode);
 
   if (record.status === EXPIRED) {
     throw raise.PAIR_EXPIRED('邀请已过期，可重新发起', { status: EXPIRED, pair_code: pairCode });
@@ -753,14 +759,15 @@ function completePair(ctx, params) {
   // 受邀者未显式 accept 即直接完成的情形：此处补齐 invitee_id（迁移表第 6 行）
   const inviteeId = record.invitee_id === null ? userId : record.invitee_id;
   const inviterCode = record.initiator_code;
-  const inviteeSession = ctx.store.findLatestSessionByUser(inviteeId);
+  const inviteeSession = await ctx.store.findLatestSessionByUser(inviteeId);
   const inviteeCode = inviteeSession ? inviteeSession.archetype_code : null;
 
-  return ctx.store.transaction((store) => {
+  // 云库无跨文档事务，transaction 为「顺序执行、不回滚」；幂等由上方 COMPLETED 分支与 CAS 保证
+  return ctx.store.transaction(async (store) => {
     // 先落定受邀者归属（即使结果未齐备也要占位，避免并发被他人顶替）
     let current = record;
     if (current.invitee_id === null) {
-      current = store.updatePairing({ ...current, invitee_id: inviteeId });
+      current = await store.updatePairing({ ...current, invitee_id: inviteeId });
     }
 
     // 双方结果未齐备：不报错，返回 pending 供前端继续等待（迁移表第 8 行）
@@ -769,7 +776,7 @@ function completePair(ctx, params) {
     }
 
     // §3.3：同一对好友已有完成的同码配对 → 直接复用，不重复计算
-    const existing = store.findActivePairingByPair(current.initiator_id, inviteeId);
+    const existing = await store.findActivePairingByPair(current.initiator_id, inviteeId);
     const canReuse =
       existing &&
       existing.pair_code !== current.pair_code &&
@@ -784,7 +791,7 @@ function completePair(ctx, params) {
           return { c: s.c, pct: s.similarityPct, band: s.band };
         })();
 
-    const updated = store.updatePairing({
+    const updated = await store.updatePairing({
       ...current,
       invitee_code: inviteeCode,
       status: COMPLETED,
@@ -999,6 +1006,253 @@ function bandForCount(c) {
 module.exports = { similarity, formatSimilarityPct, bandForCount, CODE_LENGTH };
   };
 
+  // ── server/lib/store-cloud.js
+  __registry["server/lib/store-cloud.js"] = function (module, exports, require) {
+'use strict';
+
+/**
+ * 云数据库 store —— 抖音云云数据库（文档型）实现
+ *
+ * 依据：《平台规则检索记录》R-8、《技术资产》§6 / §12、《待确认项台账》D-1。
+ * 服务端唯一通道为官方 Node SDK：`@open-dy/node-server-sdk` → `dySDK.database()`。
+ * 文档：…/cloud-database/server/sdk-collection、…/server/sdk-document。
+ *
+ * 与内存实现（store.js）的关系：**方法签名一一对应**，差异只在载体语义：
+ *   1) 全部方法返回 Promise（云库 IO 天然异步）。上层 handler / pairing 统一 `await`，
+ *      因此同一套上层逻辑对两种 store 都成立（`await 同步值` 合法）。
+ *   2) 唯一索引由集合的 `_id` 承担：sessions 用 session_id、pairings 用 pair_code、
+ *      events 用 event_id 作 `_id`。`add` 在 `_id` 与已有记录冲突时失败 —— 天然唯一键插入。
+ *      **错误处理不依赖具体 errorCode**：catch 后回读同 `_id`，读到即判为「冲突/重复」，
+ *      读不到则原样抛出（避免把真实故障误判成冲突）。
+ *   3) 「先到先得」改用条件更新（CAS）：`where({pair_code, invitee_id: null}).update`
+ *      返回 `updated:0|1`，`0` 即已被占用，解决多实例下并发接受的竞态。
+ *   4) **服务端 SDK 无跨文档事务** → `transaction` 降级为「顺序执行、不回滚」：
+ *      幂等性由业务层保证（如 pairing.completePair 的「已完成即返回首结果」分支）。
+ *      **不虚构云侧事务语义。**
+ *
+ * 集合（首次写入即创建；需在抖音云控制台开启「云数据库」组件后生效）：
+ *   - st_sessions  _id = session_id
+ *   - st_pairings  _id = pair_code
+ *   - st_events    _id = event_id
+ */
+
+const { raise } = __req('server/lib/errors.js');
+
+const C_SESSIONS = 'st_sessions';
+const C_PAIRINGS = 'st_pairings';
+const C_EVENTS = 'st_events';
+const EXPIRED = 'expired';
+
+/** 去掉库侧 `_id`，使读出的记录字段口径与内存实现一致。 */
+function stripId(doc) {
+  if (!doc) return null;
+  const { _id, ...rest } = doc;
+  return rest;
+}
+
+/** `doc(id).get()` → 单条记录或 null。 */
+async function readDoc(collection, id) {
+  const res = await collection.doc(id).get();
+  const rows = (res && res.data) || [];
+  return rows.length > 0 ? rows[0] : null;
+}
+
+/** 唯一键冲突判定：写失败后回读同 `_id`，存在即冲突。 */
+async function insertUnique(collection, id, doc, conflictMessage) {
+  try {
+    await collection.add({ ...doc, _id: id });
+  } catch (err) {
+    if (await readDoc(collection, id)) throw raise.SERVER_ERROR(conflictMessage);
+    throw err;
+  }
+}
+
+/**
+ * @param {{database:()=>object}} dySDK 官方 SDK 的 `dySDK`（`database()` 返回数据库实例）
+ */
+function createCloudStore(dySDK) {
+  const database = dySDK.database();
+  const command = database.command;
+
+  const api = {
+    // ── sessions（_id = session_id）──
+
+    async insertSession(record) {
+      await insertUnique(
+        database.collection(C_SESSIONS),
+        record.session_id,
+        record,
+        `session_id 已存在：${record.session_id}`
+      );
+      return { ...record };
+    },
+
+    async getSession(sessionId) {
+      return stripId(await readDoc(database.collection(C_SESSIONS), sessionId));
+    },
+
+    async findLatestSessionByUser(userPseudoId) {
+      const res = await database
+        .collection(C_SESSIONS)
+        .where({ user_pseudo_id: userPseudoId })
+        .orderBy('ts', 'desc')
+        .limit(1)
+        .get();
+      const rows = (res && res.data) || [];
+      return rows.length > 0 ? stripId(rows[0]) : null;
+    },
+
+    // ── pairings（_id = pair_code）──
+
+    async pairCodeExists(pairCode) {
+      return !!(await readDoc(database.collection(C_PAIRINGS), pairCode));
+    },
+
+    async getPairing(pairCode) {
+      return stripId(await readDoc(database.collection(C_PAIRINGS), pairCode));
+    },
+
+    async insertPairing(record) {
+      await insertUnique(
+        database.collection(C_PAIRINGS),
+        record.pair_code,
+        record,
+        `pair_code 已存在：${record.pair_code}`
+      );
+      return { ...record };
+    },
+
+    async updatePairing(record) {
+      // set 为替换式写入；须剔除 `_id`（SDK 不允许更新 _id）
+      await database.collection(C_PAIRINGS).doc(record.pair_code).set(stripId(record));
+      return { ...record };
+    },
+
+    /**
+     * 先到先得：仅当 invitee_id 仍为 null 时写入。
+     * @returns {Promise<boolean>} true=本次写入生效；false=已被他人抢先（`updated:0`）
+     */
+    async claimInvitee(pairCode, inviteeId) {
+      const res = await database
+        .collection(C_PAIRINGS)
+        .where({ pair_code: pairCode, invitee_id: null })
+        .update({ invitee_id: inviteeId });
+      return res.updated === 1;
+    },
+
+    /**
+     * 按 (发起者, 受邀者) 查未失效记录。
+     * 语义来源（§3.3）：同对好友重复配对 → 复用已完成记录；expired 不占索引。
+     */
+    async findActivePairingByPair(initiatorId, inviteeId) {
+      const res = await database
+        .collection(C_PAIRINGS)
+        .where({ initiator_id: initiatorId, invitee_id: inviteeId, status: command.neq(EXPIRED) })
+        .orderBy('created_at', 'desc')
+        .limit(1)
+        .get();
+      const rows = (res && res.data) || [];
+      return rows.length > 0 ? stripId(rows[0]) : null;
+    },
+
+    // ── events（_id = event_id，服务端去重）──
+
+    async seenEvent(eventId) {
+      return !!(await readDoc(database.collection(C_EVENTS), eventId));
+    },
+
+    async appendEvent(event) {
+      await insertUnique(
+        database.collection(C_EVENTS),
+        event.event_id,
+        event,
+        `event_id 已存在：${event.event_id}`
+      );
+      return { ...event };
+    },
+
+    // ── 事务（降级）──
+
+    /**
+     * 云数据库无跨文档事务：只顺序执行回调、不回滚。
+     * @param {(store:object)=>Promise<any>} fn
+     */
+    async transaction(fn) {
+      return fn(api);
+    },
+
+    // ── 运维辅助 ──
+
+    async stats() {
+      const [sessions, pairings, events] = await Promise.all([
+        database.collection(C_SESSIONS).count(),
+        database.collection(C_PAIRINGS).count(),
+        database.collection(C_EVENTS).count(),
+      ]);
+      return { sessions: sessions.total, pairings: pairings.total, events: events.total };
+    },
+  };
+
+  return api;
+}
+
+module.exports = { createCloudStore, COLLECTIONS: { C_SESSIONS, C_PAIRINGS, C_EVENTS } };
+  };
+
+  // ── server/lib/store-provider.js
+  __registry["server/lib/store-provider.js"] = function (module, exports, require) {
+'use strict';
+
+/**
+ * 运行时 store 选择
+ *
+ * 云函数为**多实例**，必须用云数据库才能保证跨实例可见；内存实现仅用于本地与集成测试。
+ * 策略（《技术资产》§12、《待确认项台账》D-1）：
+ *   1) **懒加载**官方 SDK `@open-dy/node-server-sdk`：本地 / 单测环境通常未安装该依赖，
+ *      顶层 `require` 会让 `npm test` 直接挂掉；改为入口首次调用时再加载。
+ *   2) 云数据库可用 → 用云库（store-cloud.js）。
+ *   3) 不可用 → 降级为内存 store，并**显式告警**（禁止静默降级，避免线上丢状态无从察觉）。
+ */
+
+const { createStore } = __req('server/lib/store.js');
+const { createCloudStore } = __req('server/lib/store-cloud.js');
+
+/** 默认 SDK 加载器。外部依赖，打包器不改写；由云端 package.json 声明并由平台安装。 */
+function loadDefaultSDK() {
+  return require('@open-dy/node-server-sdk');
+}
+
+/** 取告警输出通道：优先平台运行时的 context.warn，回落到 console.warn。 */
+function pickWarn(context) {
+  if (context && typeof context.warn === 'function') return context.warn.bind(context);
+  if (context && typeof context.log === 'function') return context.log.bind(context);
+  return console.warn.bind(console);
+}
+
+/**
+ * @param {object} [context] 云函数运行时上下文（仅供告警输出）
+ * @param {()=>object} [loadSDK] SDK 加载器，默认官方 SDK；单测注入以模拟「可用 / 不可用」
+ * @returns {object} store 实例（云库或内存）
+ */
+function createRuntimeStore(context, loadSDK = loadDefaultSDK) {
+  try {
+    const sdk = loadSDK();
+    const dySDK = sdk.dySDK || sdk.default || sdk;
+    if (!dySDK || typeof dySDK.database !== 'function') {
+      throw new Error('SDK 未暴露 dySDK.database()');
+    }
+    return createCloudStore(dySDK);
+  } catch (err) {
+    pickWarn(context)(
+      `[store] 云数据库不可用，已降级为内存 store（多实例下不保证一致，不适用于生产）：${err && err.message}`
+    );
+    return createStore();
+  }
+}
+
+module.exports = { createRuntimeStore };
+  };
+
   // ── server/lib/store.js
   __registry["server/lib/store.js"] = function (module, exports, require) {
 'use strict';
@@ -1011,8 +1265,12 @@ module.exports = { similarity, formatSimilarityPct, bandForCount, CODE_LENGTH };
  *
  * 后续替换为云数据库时只需重写本文件（保持方法签名），上层逻辑不动。
  *
- * TODO(D-1)：云数据库（文档型）无跨文档事务。落地到云函数时，`transaction` 需改为
- *   「幂等重放 + 补偿」策略，或改用平台提供的事务能力。**此处不虚构云侧事务语义。**
+ * TODO(D-1)：云数据库（文档型）无跨文档事务。云库实现（store-cloud.js）已把 `transaction`
+ *   降级为「顺序执行、不回滚」，幂等性由业务层保证。**不虚构云侧事务语义。**
+ *
+ * `transaction` 既接受**同步回调**（就地快照回滚），也接受**异步回调**（云库路径下
+ * store 方法返回 Promise）：异步回调 reject 时同样整体回滚，故上层的 `await store.transaction(...)`
+ * 对两种 store 语义一致。
  */
 
 const { raise } = __req('server/lib/errors.js');
@@ -1117,6 +1375,18 @@ function createStore() {
     },
 
     /**
+     * 先到先得：仅当 `invitee_id` 仍为 null 时写入。
+     * 与云库实现的 CAS（`where({pair_code, invitee_id:null}).update`）语义一致。
+     * @returns {boolean} true=本次写入生效；false=已被他人抢先
+     */
+    claimInvitee(pairCode, inviteeId) {
+      const rec = state.pairings.get(pairCode);
+      if (!rec || rec.invitee_id !== null) return false;
+      api.updatePairing({ ...clone(rec), invitee_id: inviteeId });
+      return true;
+    },
+
+    /**
      * 按 (发起者, 受邀者) 查未失效的配对记录。
      * 语义来源（§3.3）：同一用户对同一好友重复配对 → 直接复用已完成记录；
      * 已有 expired 记录则视为新配对，允许新建（故 expired 不占复合索引）。
@@ -1142,7 +1412,8 @@ function createStore() {
 
     /**
      * 事务快照 + 回滚。fn 抛错时，sessions / pairings / 复合索引整体还原。
-     * @param {(store:object)=>any} fn
+     * 同步回调就地回滚；异步回调（返回 Promise）在 reject 时回滚，两种形态语义一致。
+     * @param {(store:object)=>any|Promise<any>} fn
      */
     transaction(fn) {
       const snapshot = {
@@ -1152,16 +1423,31 @@ function createStore() {
         eventIds: new Set(state.eventIds),
         events: clone(state.events),
       };
-      try {
-        return fn(api);
-      } catch (err) {
+      const rollback = () => {
         state.sessions = snapshot.sessions;
         state.pairings = snapshot.pairings;
         state.pairIndex = snapshot.pairIndex;
         state.eventIds = snapshot.eventIds;
         state.events = snapshot.events;
+      };
+
+      let result;
+      try {
+        result = fn(api);
+      } catch (err) {
+        rollback();
         throw err;
       }
+      if (result && typeof result.then === 'function') {
+        return result.then(
+          (value) => value,
+          (err) => {
+            rollback();
+            throw err;
+          }
+        );
+      }
+      return result;
     },
 
     // ── 测试与运维辅助 ──
@@ -1435,19 +1721,20 @@ module.exports = deepFreeze({
  * 云函数入口：getPairStatus（薄壳）
  * 业务逻辑见 server/lib/handlers.js。部署形态见《技术资产》§6（产物 build/cloud-functions/<函数名>.js）。
  *
- * TODO(D-1)：store 需替换为平台数据库实现（多实例共享），内存实现仅用于本地与集成测试。
+ * 已落地(D-1)：store 由 store-provider.js 按环境选择（云库优先，降级内存并告警）。
  */
 
-const { createStore } = __req('server/lib/store.js');
+const { createRuntimeStore } = __req('server/lib/store-provider.js');
 const { getPairStatus } = __req('server/lib/handlers.js');
 
-const store = createStore();
+let store = null;
 
 /**
  * 入口签名对齐平台契约（已与线上函数服务核对）：`params` 即 HTTP 请求体本身，
  * 返回值作为 Response Body；调用路径 = 文件名，即 `/getPairStatus`。
  */
-module.exports = async function main(params) {
+module.exports = async function main(params, context) {
+  if (!store) store = createRuntimeStore(context);
   return getPairStatus(params || {}, { store, now: Date.now });
 };
   };
