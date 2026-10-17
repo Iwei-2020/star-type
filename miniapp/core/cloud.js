@@ -3,15 +3,23 @@
 /**
  * 云函数调用适配器
  *
- * 依据：《技术资产》§6（云函数接口契约与统一信封）、§3.4（失败退避重试）。
+ * 依据：《技术资产》§6（接口契约与统一信封）、§3.4（失败退避重试）；
+ * 《平台规则检索记录》R-8（2026-10-17 检索：平台官方后端载体为**抖音云**，
+ * 小程序侧调用形态为 `tt.createCloud` + `Cloud.callContainer`，登录由云托管服务端
+ * 从请求 header 直接取得用户身份，即「免登录」）。
  *
- * 为什么要有这一层：服务端的**产品载体形态属 D-1 待平台侧复核**（技术资产 L39），
- * 官方 Serverless / 云托管 / 第三方云函数在「怎么调」上并不一致。若把调用方式散落到
- * P-04 / P-05 里，载体一变就要改页面。故此处把平台差异收敛成两点：
- *   1. **调用器（invoker）**：从宿主对象探测（tt.cloud.callFunction / tt.callFunction），
- *      或由外部注入（便于 Node 下单测，也能在选型确定后一行替换）；
- *   2. **信封解析**：服务端统一返回 `{ code, msg, data }`（server/lib/envelope.js），
- *      平台可能再包一层 `result`，此处归一，页面层只看到 `{ ok, code, msg, data }`。
+ * 为什么要有这一层：载体形态一旦变化（抖音云函数服务 / 云托管 / 自建 HTTP 服务），
+ * 「怎么调」就不一样。若把调用方式散落到 P-04 / P-05 里，换载体就要改页面。故此处收敛两点：
+ *   1. **调用器（invoker）**：默认按平台官方形态构造 —— 宿主具备 `tt.createCloud` 且注入了
+ *      `envID` 时，经 `cloud.callContainer({ path, init })` 调用，函数名即路径（约定 `/函数名`）；
+ *      亦支持外部注入 invoker（Node 单测 / 自建服务端）。两者都不可用时视为无能力；
+ *   2. **信封解析**：服务端统一返回 `{ code, msg, data }`（server/lib/envelope.js）。
+ *      `Cloud.callContainer` 的 `data` 是 **JSON 字符串**（R-8），此处负责 parse 后归一，
+ *      页面层只看到 `{ ok, code, msg, data }`。
+ *
+ * 平台**没有** `tt.cloud.callFunction` / `tt.callFunction` 形态（R-8 已比对官方原文），故不在此臆造；
+ * 也不需要 `tt.login` + `code2Session` 置换身份 —— 云托管服务端可直接从 header 读到
+ * `X-TT-OPENID` 等字段（免登录）。身份链路不在本适配器职责内，此处只透传业务参数。
  *
  * 无调用能力时 `available()` 为 false，页面与埋点各自降级（app.js 不接 transport、
  * P-04 直接进计算失败态），绝不抛出、绝不阻断渲染。
@@ -19,28 +27,69 @@
 
 const { ERROR_CODES } = require('../shared/client-constants.js');
 
+/** 云托管路由约定：函数名 → `callContainer` 的 path（对应的服务端薄壳见 server/functions/）。 */
+function pathOf(name) {
+  return `/${name}`;
+}
+
 /**
- * 从宿主对象解析可用的云函数调用器。
+ * 按平台官方形态构造调用器（抖音云，R-8）：`tt.createCloud({ envID, serviceID })`
+ * → `Cloud.callContainer({ path, init })`；小程序最低基础库 2.70.0。
+ * 宿主无 `createCloud`、未注入 envID、或实例不提供 `callContainer` 时返回 null
+ * —— 视为无调用能力，由调用方走降级分支，绝不抛错。
  * @param {object|null} host 抖音小程序为全局 tt
- * @returns {null | ((name:string, params:object) => any)}
+ * @param {{envID?:string, serviceID?:string}} [config] 云托管接入配置（抖音云控制台取得）
+ * @returns {null | ((name:string, params:object) => Promise<*|never>)}
  */
-function resolveInvoker(host) {
-  if (!host) return null;
-  if (host.cloud && typeof host.cloud.callFunction === 'function') {
-    return (name, params) => host.cloud.callFunction({ name, data: params });
+function resolveInvoker(host, config) {
+  if (!host || typeof host.createCloud !== 'function') return null;
+  const envID = (config && config.envID) || '';
+  if (!envID) return null;
+
+  let cloud;
+  try {
+    cloud = host.createCloud({ envID, serviceID: (config && config.serviceID) || '' });
+  } catch (err) {
+    return null;
   }
-  if (typeof host.callFunction === 'function') {
-    return (name, params) => host.callFunction({ name, data: params });
-  }
-  return null;
+  if (!cloud || typeof cloud.callContainer !== 'function') return null;
+
+  return (name, params) =>
+    new Promise((resolve, reject) => {
+      cloud.callContainer({
+        path: pathOf(name),
+        init: {
+          method: 'POST',
+          header: { 'content-type': 'application/json' },
+          body: params || {},
+        },
+        success: (res) => resolve(res),
+        fail: (err) => reject(new Error((err && err.errMsg) || 'callContainer_failed')),
+      });
+    });
 }
 
 /**
  * 把平台返回归一成统一信封 `{ code, msg, data }`；形态不可识别时返回 null。
- * 兼容两种常见包裹：直接返回信封，或包一层 `result`。
+ * 兼容三种包裹（R-8 与历史骨架共用一条解析路径）：
+ *   1. 抖音云 `callContainer` 的原始返回 `{ statusCode, header, data }`——`data` 为 JSON 字符串；
+ *   2. 直返信封；
+ *   3. 包一层 `result`。
  */
 function unwrap(out) {
-  const value = out && typeof out === 'object' && out.result !== undefined ? out.result : out;
+  let value = out;
+  if (value && typeof value === 'object' && value.statusCode !== undefined && value.data !== undefined) {
+    if (typeof value.data !== 'string') {
+      value = value.data;
+    } else {
+      try {
+        value = JSON.parse(value.data);
+      } catch (err) {
+        return null;
+      }
+    }
+  }
+  if (value && typeof value === 'object' && value.result !== undefined) value = value.result;
   if (!value || typeof value !== 'object') return null;
   if (value.code === undefined || value.code === null) return null;
   return {
@@ -51,13 +100,14 @@ function unwrap(out) {
 }
 
 /**
- * @param {{host?:object, invoker?:Function|null}} [options]
+ * @param {{host?:object, envID?:string, serviceID?:string, invoker?:Function|null}} [options]
  *   - host：宿主对象，默认由调用方传入全局 tt；
- *   - invoker：显式注入的调用器；显式传 null 表示「强制无能力」，用于测试降级路径。
+ *   - envID / serviceID：抖音云接入配置，用于按平台官方形态构造调用器（R-8）；
+ *   - invoker：显式注入的调用器（优先于上述两者）；显式传 null 表示「强制无能力」，用于测试降级路径。
  */
 function createCloud(options) {
   const opts = options || {};
-  const invoker = opts.invoker !== undefined ? opts.invoker : resolveInvoker(opts.host);
+  const invoker = opts.invoker !== undefined ? opts.invoker : resolveInvoker(opts.host, opts);
 
   /** 当前宿主是否具备真实调用能力；false 时各处须走降级分支。 */
   function available() {

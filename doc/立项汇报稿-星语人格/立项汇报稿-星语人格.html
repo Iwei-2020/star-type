@@ -757,7 +757,7 @@ flowchart TD
             <tr><td class="mono">09</td><td>《美术稿-功能图标库.html / .png》</td><td>美术稿</td><td>20 图标</td></tr>
             <tr><td class="mono">10</td><td>《合规资产-提审自检清单.md》</td><td>合规</td><td>已交付</td></tr>
             <tr><td class="mono">11</td><td>《待确认项台账-外部依赖确认单.md》</td><td>决策台账</td><td>已交付</td></tr>
-            <tr><td class="mono">12</td><td>《平台规则检索记录.md》</td><td>检索记录（R-1～R-7）</td><td>未经平台确认</td></tr>
+            <tr><td class="mono">12</td><td>《平台规则检索记录.md》</td><td>检索记录（R-1～R-8）</td><td>未经平台确认</td></tr>
             <tr><td class="mono">13</td><td>《技术资产-研发侧技术方案预研.md》</td><td>技术方案（选型 + 核心链路详设 + 字体子集化）</td><td>v1.1 预研稿</td></tr>
             <tr><td class="mono">14</td><td>《测试资产-验收用例与测试计划.md》</td><td>测试与验收（用例 + 门禁）</td><td>v1 提案稿</td></tr>
             <tr><td class="mono">15</td><td>《运营资产-上线计划与运营节奏.md》</td><td>上线计划（里程碑 + 节奏）</td><td>v1 提案稿</td></tr>
@@ -781,8 +781,8 @@ flowchart TD
               <td><strong>① 平台规范类</strong></td>
               <td>D-1 技术适配（5.3）<br>D-2 类目与资质（8.1）<br>D-7 广告变现准入（7.3）</td>
               <td>研发 / 产品</td>
-              <td>已检索到参考值，待平台侧复核</td>
-              <td>影响提审材料与变现开通时点</td>
+              <td>已检索到参考值，待平台侧复核；服务端载体已收口为抖音云（函数服务 / 云托管）<sup><a href="#cite-9">[9]</a></sup></td>
+              <td>影响提审材料与变现开通时点；服务端载体已定，仅剩开通与计费确认</td>
             </tr>
             <tr>
               <td><strong>② 商业政策类</strong></td>
@@ -875,6 +875,10 @@ flowchart TD
         <li id="cite-8">
           <span class="src-title">《PRD-抖音趣味测试小游戏-星语人格.md》v1.9 与配套 15 份资产。本汇报稿的全部内容口径均以其为单一来源。</span>
           <span class="src-url">项目本地文档 · /Users/mima0000/Desktop/project-dy/PRD-抖音趣味测试小游戏-星语人格.md</span>
+        </li>
+        <li id="cite-9">
+          <span class="src-title">《平台规则检索记录.md》R-8 服务端载体与调用来源校验。平台官方载体为抖音云（函数服务 / 云托管），小程序侧调用形态为 tt.createCloud + Cloud.callContainer（基础库 ≥ 2.70.0），身份经请求 header 免登录透传；无免费额度、按量计费。</span>
+          <span class="src-url">项目本地文档 · /Users/mima0000/Desktop/project-dy/平台规则检索记录.md</span>
         </li>
       </ol>
     </div>

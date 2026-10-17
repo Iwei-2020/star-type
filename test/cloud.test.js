@@ -2,12 +2,12 @@
 
 /**
  * 云函数调用适配器单测
- * 覆盖：调用器探测（tt.cloud.callFunction / tt.callFunction / 无能力）、
- *      统一信封归一（直返 / 包一层 result）、业务码→ok 映射、异常与非法返回的收敛、
- *      六个薄壳方法名透传、无能力时的降级（available=false, code=NO_INVOKER）。
+ * 覆盖：调用器构造（平台官方形态 tt.createCloud + Cloud.callContainer；缺 envID 或无能力 → null）、
+ *      统一信封归一（callContainer 原始返回 / 直返信封 / 包一层 result）、业务码→ok 映射、
+ *      异常与非法返回的收敛、六个薄壳方法名透传、无能力时的降级（available=false, code=NO_INVOKER）。
  *
- * 服务端产品载体属 D-1 待复核，故此处以「注入调用器」的方式把适配层钉死在契约上，
- * 不依赖任何真实平台 API。
+ * 服务端载体已按《平台规则检索记录》R-8 收口为抖音云；此处以「伪造宿主 + 注入调用器」把适配层
+ * 钉死在契约上，不依赖任何真实平台 API，也不要求开通云服务。
  */
 
 const test = require('node:test');
@@ -18,25 +18,56 @@ const { createCloud, resolveInvoker, unwrap } = require('../miniapp/core/cloud.j
 
 const OK = client.ERROR_CODES.OK;
 
-test('resolveInvoker：优先 tt.cloud.callFunction，其次 tt.callFunction，均无则 null', () => {
+test('resolveInvoker：按平台官方形态构造（tt.createCloud + callContainer），缺配置或无能力时返回 null', async () => {
   assert.equal(resolveInvoker(null), null);
-  assert.equal(resolveInvoker({}), null);
+  assert.equal(resolveInvoker({}), null, '宿主无 createCloud 即无能力');
 
-  const viaCloud = [];
-  const hostCloud = {
-    cloud: { callFunction: (arg) => { viaCloud.push(arg); return Promise.resolve({ code: OK, data: 1 }); } },
+  const sent = [];
+  let created = null;
+  const host = {
+    createCloud: (cfg) => {
+      created = cfg;
+      return {
+        callContainer: (opts) => {
+          sent.push(opts);
+          opts.success({ statusCode: 200, header: {}, data: JSON.stringify({ code: OK, msg: 'ok', data: 1 }) });
+        },
+      };
+    },
   };
-  const cloudInvoker = resolveInvoker(hostCloud);
-  assert.equal(typeof cloudInvoker, 'function');
-  cloudInvoker('computeResult', { a: 1 });
-  assert.deepEqual(viaCloud, [{ name: 'computeResult', data: { a: 1 } }]);
 
-  const viaFlat = [];
-  const hostFlat = { callFunction: (arg) => { viaFlat.push(arg); return Promise.resolve({ code: OK, data: 2 }); } };
-  const flatInvoker = resolveInvoker(hostFlat);
-  assert.equal(typeof flatInvoker, 'function');
-  flatInvoker('createInvite', { b: 2 });
-  assert.deepEqual(viaFlat, [{ name: 'createInvite', data: { b: 2 } }]);
+  assert.equal(resolveInvoker(host, {}), null, '未注入 envID 时不构造调用器');
+  assert.equal(resolveInvoker(host, { envID: '' }), null);
+  assert.equal(created, null, '无 envID 时不应触碰 createCloud');
+
+  const invoker = resolveInvoker(host, { envID: 'env-1', serviceID: 'svc-1' });
+  assert.equal(typeof invoker, 'function');
+  assert.deepEqual(created, { envID: 'env-1', serviceID: 'svc-1' });
+
+  const out = await invoker('computeResult', { session_id: 's1' });
+  assert.equal(sent.length, 1);
+  assert.equal(sent[0].path, '/computeResult', '函数名即云托管路径');
+  assert.equal(sent[0].init.method, 'POST');
+  assert.deepEqual(sent[0].init.header, { 'content-type': 'application/json' });
+  assert.deepEqual(sent[0].init.body, { session_id: 's1' });
+  assert.equal(out.statusCode, 200, '调用器透传 callContainer 的原始返回，由 unwrap 归一');
+
+  assert.equal(resolveInvoker({ createCloud: () => ({}) }, { envID: 'e' }), null, '实例无 callContainer 即无能力');
+  assert.equal(
+    resolveInvoker({ createCloud: () => { throw new Error('no cloud'); } }, { envID: 'e' }),
+    null,
+    'createCloud 抛错须收敛为无能力，不得上抛'
+  );
+});
+
+test('unwrap：callContainer 原始返回（data 为 JSON 字符串）也能归一', () => {
+  const raw = { statusCode: 200, header: { 'x-tt-openid': 'o1' }, data: JSON.stringify({ code: 0, msg: 'ok', data: { x: 1 } }) };
+  assert.deepEqual(unwrap(raw), { code: 0, msg: 'ok', data: { x: 1 } });
+
+  // 网关已解析成对象时同样可用
+  assert.deepEqual(unwrap({ statusCode: 200, data: { code: 0, msg: 'ok', data: 2 } }), { code: 0, msg: 'ok', data: 2 });
+  // 非 JSON 字符串（如网关错误页）不可识别，交给上层收敛为 SERVER_ERROR
+  assert.equal(unwrap({ statusCode: 502, data: '<html>bad gateway</html>' }), null);
 });
 
 test('unwrap：直返信封与包一层 result 都归一为 { code, msg, data }', () => {
@@ -76,6 +107,29 @@ test('createCloud：平台包一层 result 时同样解析', async () => {
   const res = await cloud.createInvite({ user_pseudo_id: 'u1' });
   assert.equal(res.ok, true);
   assert.deepEqual(res.data, { pair_code: 'K7QX2M9T' });
+});
+
+test('createCloud：经平台形态（createCloud + callContainer）端到端打通，fail 回调收敛为 SERVER_ERROR', async () => {
+  const host = {
+    createCloud: () => ({
+      callContainer: (opts) => {
+        if (opts.path === '/reportEvents') return opts.fail({ errMsg: 'Cloud.callContainer:fail timeout' });
+        opts.success({ statusCode: 200, header: {}, data: JSON.stringify({ code: 1001, msg: '答案不完整', data: null }) });
+      },
+    }),
+  };
+  const cloud = createCloud({ host, envID: 'env-1', serviceID: 'svc-1' });
+  assert.equal(cloud.available(), true, '注入了 envID 即具备调用能力');
+
+  const failed = await cloud.computeResult({ answers: {} });
+  assert.equal(failed.ok, false);
+  assert.equal(failed.code, client.ERROR_CODES.ANSWER_INCOMPLETE);
+  assert.equal(failed.msg, '答案不完整');
+
+  const netErr = await cloud.reportEvents({ events: [] });
+  assert.equal(netErr.ok, false);
+  assert.equal(netErr.code, client.ERROR_CODES.SERVER_ERROR);
+  assert.equal(netErr.msg, 'Cloud.callContainer:fail timeout');
 });
 
 test('createCloud：异常与非法返回一律收敛为 SERVER_ERROR，绝不 reject', async () => {

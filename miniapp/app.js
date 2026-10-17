@@ -14,7 +14,8 @@
  *
  * 关于上报通道：`transport` 仅在宿主具备云函数调用能力时接上（core/cloud.js 的 available()）；
  * 取不到能力时保持 null，埋点事件留在队列内（core/tracker.js 的 no_transport 短路），
- * 与「不接真实端点」的骨架阶段行为一致。服务端载体形态属 D-1 待复核，见 core/cloud.js 顶部说明。
+ * 与「不接真实端点」的骨架阶段行为一致。服务端载体已按《平台规则检索记录》R-8 收口为
+ * **抖音云**（小程序侧 `tt.createCloud` + `Cloud.callContainer`），接入配置见下方 `CLOUD_ENV`。
  */
 
 const { createStorage } = require('./core/storage.js');
@@ -26,6 +27,12 @@ const { questionIds } = require('./core/display.js');
 
 /** 宿主 API：抖音小程序为全局 tt；在 Node 测试或编译期取到的是 null，此时存储降级为内存实现。 */
 const HOST = typeof tt !== 'undefined' ? tt : null;
+
+/**
+ * 抖音云托管接入配置（《平台规则检索记录》R-8）：在抖音云控制台开通服务后取得 envID / serviceID 并填入。
+ * 留空即视为无调用能力 —— 页面与埋点自动走降级分支，与骨架阶段行为一致，不影响编译与上线。
+ */
+const CLOUD_ENV = { envID: '', serviceID: '' };
 
 /** `getNetworkType` 为异步接口，启动时取一次并缓存，供埋点公共字段读取。 */
 let networkType = 'unknown';
@@ -59,7 +66,7 @@ App({
 
     const storage = createStorage(HOST && typeof HOST.getStorageSync === 'function' ? HOST : null);
     const session = createSession(storage, { questionIds: questionIds() });
-    const cloud = createCloud({ host: HOST });
+    const cloud = createCloud({ host: HOST, envID: CLOUD_ENV.envID, serviceID: CLOUD_ENV.serviceID });
 
     const tracker = createTracker({
       // 无云函数能力时保持 null：事件留在队列内（骨架阶段行为），不产生必然失败的空转请求
