@@ -9,8 +9,8 @@
   },
   "scripts": {
     "test": "node --test test/*.test.js",
-    "gen": "node tools/gen-constants.js && node tools/gen-strings.js && node tools/gen-assets.js",
-    "gen:check": "node tools/gen-constants.js --check && node tools/gen-strings.js --check && node tools/gen-assets.js --check",
+    "gen": "node tools/gen-constants.js && node tools/gen-strings.js && node tools/gen-assets.js && node tools/gen-cloud-functions.js",
+    "gen:check": "node tools/gen-constants.js --check && node tools/gen-strings.js --check && node tools/gen-assets.js --check && node tools/gen-cloud-functions.js --check",
     "check:strings": "node tools/check-strings.js",
     "check:isolation": "node tools/check-client-isolation.js",
     "check": "npm run gen:check && npm run check:strings && npm run check:isolation",

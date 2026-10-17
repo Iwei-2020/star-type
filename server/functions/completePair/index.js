@@ -2,7 +2,7 @@
 
 /**
  * 云函数入口：completePair（薄壳）
- * 业务逻辑见 server/lib/handlers.js。部署配置待 D-1 闭环后补齐。
+ * 业务逻辑见 server/lib/handlers.js。部署形态见《技术资产》§6（产物 build/cloud-functions/<函数名>.js）。
  *
  * 注意：本接口入参**不含答案**，只读双方已落库的 archetype_code，
  * 因此不构成第二计分入口（《技术资产》§1.2 单一权威实现）。
@@ -15,7 +15,10 @@ const { completePair } = require('../../lib/handlers.js');
 
 const store = createStore();
 
-module.exports = async function main(event) {
-  const params = event && event.params ? event.params : event;
-  return completePair(params, { store, now: Date.now });
+/**
+ * 入口签名对齐平台契约（已与线上函数服务核对）：`params` 即 HTTP 请求体本身，
+ * 返回值作为 Response Body；调用路径 = 文件名，即 `/completePair`。
+ */
+module.exports = async function main(params) {
+  return completePair(params || {}, { store, now: Date.now });
 };
