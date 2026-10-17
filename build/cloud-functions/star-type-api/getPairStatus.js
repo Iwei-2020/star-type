@@ -1,12 +1,12 @@
 /**
- * 抖音云函数服务产物：computeResult.js
+ * 抖音云函数服务产物：getPairStatus.js
  *
- * **构建期生成，禁止手改**。源：server/lib/codes.js / server/lib/envelope.js / server/lib/errors.js / server/lib/handlers.js / server/lib/pairing.js / server/lib/scoring.js / server/lib/similarity.js / server/lib/store-cloud.js / server/lib/store-provider.js / server/lib/store.js / shared/constants.js / server/functions/computeResult/index.js
+ * **构建期生成，禁止手改**。源：server/lib/codes.js / server/lib/envelope.js / server/lib/errors.js / server/lib/handlers.js / server/lib/pairing.js / server/lib/scoring.js / server/lib/similarity.js / server/lib/store-cloud.js / server/lib/store-provider.js / server/lib/store.js / shared/constants.js / server/functions/getPairStatus/index.js
  * 改完源后重跑 `node tools/gen-cloud-functions.js`（生成脚本：tools/gen-cloud-functions.js）。
  *
  * 平台契约（已与线上函数服务核对）：入口 `module.exports = async function (params)`，
  * `params` 即 HTTP 请求体本身，返回值作为 Response Body（平台序列化为 JSON 信封）；
- * 调用路径 = 文件名，即 `/computeResult`。
+ * 调用路径 = 文件名，即 `/getPairStatus`。
  */
 'use strict';
 
@@ -1713,36 +1713,31 @@ module.exports = deepFreeze({
 });
   };
 
-  // ── server/functions/computeResult/index.js
-  __registry["server/functions/computeResult/index.js"] = function (module, exports, require) {
+  // ── server/functions/getPairStatus/index.js
+  __registry["server/functions/getPairStatus/index.js"] = function (module, exports, require) {
 'use strict';
 
 /**
- * 云函数入口：computeResult（薄壳）
+ * 云函数入口：getPairStatus（薄壳）
+ * 业务逻辑见 server/lib/handlers.js。部署形态见《技术资产》§6（产物 build/cloud-functions/star-type-api/<函数名>.js）。
  *
- * 本文件只做「事件 → 参数 → handler」的转接，业务逻辑全在 server/lib/handlers.js。
- * 部署形态：抖音云函数服务；产物由 `node tools/gen-cloud-functions.js` 打包为自包含单文件
- * （build/cloud-functions/computeResult.js）后覆盖云端同名平铺文件，调用路径即文件名。
- *
- * 已落地(D-1)：store 由 store-provider.js 按环境选择 —— 云库优先，不可用降级内存并**显式告警**
- *   （云函数为多实例，内存实现不保证跨实例可见，**不适用于生产**）。
+ * 已落地(D-1)：store 由 store-provider.js 按环境选择（云库优先，降级内存并告警）。
  */
 
 const { createRuntimeStore } = __req('server/lib/store-provider.js');
-const { computeResult } = __req('server/lib/handlers.js');
+const { getPairStatus } = __req('server/lib/handlers.js');
 
-// 懒初始化：首次调用时选 store（本地/单测无官方 SDK 时自动降级并告警）
 let store = null;
 
 /**
  * 入口签名对齐平台契约（已与线上函数服务核对）：`params` 即 HTTP 请求体本身，
- * 返回值作为 Response Body；调用路径 = 文件名，即 `/computeResult`。
+ * 返回值作为 Response Body；调用路径 = 文件名，即 `/getPairStatus`。
  */
 module.exports = async function main(params, context) {
   if (!store) store = createRuntimeStore(context);
-  return computeResult(params || {}, { store, now: Date.now });
+  return getPairStatus(params || {}, { store, now: Date.now });
 };
   };
 
-  module.exports = __req("server/functions/computeResult/index.js");
+  module.exports = __req("server/functions/getPairStatus/index.js");
 })();

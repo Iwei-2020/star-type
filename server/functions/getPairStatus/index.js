@@ -2,7 +2,7 @@
 
 /**
  * 云函数入口：getPairStatus（薄壳）
- * 业务逻辑见 server/lib/handlers.js。部署形态见《技术资产》§6（产物 build/cloud-functions/<函数名>.js）。
+ * 业务逻辑见 server/lib/handlers.js。部署形态见《技术资产》§6（产物 build/cloud-functions/star-type-api/<函数名>.js）。
  *
  * 已落地(D-1)：store 由 store-provider.js 按环境选择（云库优先，降级内存并告警）。
  */

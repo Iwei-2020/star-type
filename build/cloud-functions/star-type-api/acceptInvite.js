@@ -1,12 +1,12 @@
 /**
- * 抖音云函数服务产物：createInvite.js
+ * 抖音云函数服务产物：acceptInvite.js
  *
- * **构建期生成，禁止手改**。源：server/lib/codes.js / server/lib/envelope.js / server/lib/errors.js / server/lib/handlers.js / server/lib/pairing.js / server/lib/scoring.js / server/lib/similarity.js / server/lib/store-cloud.js / server/lib/store-provider.js / server/lib/store.js / shared/constants.js / server/functions/createInvite/index.js
+ * **构建期生成，禁止手改**。源：server/lib/codes.js / server/lib/envelope.js / server/lib/errors.js / server/lib/handlers.js / server/lib/pairing.js / server/lib/scoring.js / server/lib/similarity.js / server/lib/store-cloud.js / server/lib/store-provider.js / server/lib/store.js / shared/constants.js / server/functions/acceptInvite/index.js
  * 改完源后重跑 `node tools/gen-cloud-functions.js`（生成脚本：tools/gen-cloud-functions.js）。
  *
  * 平台契约（已与线上函数服务核对）：入口 `module.exports = async function (params)`，
  * `params` 即 HTTP 请求体本身，返回值作为 Response Body（平台序列化为 JSON 信封）；
- * 调用路径 = 文件名，即 `/createInvite`。
+ * 调用路径 = 文件名，即 `/acceptInvite`。
  */
 'use strict';
 
@@ -1713,31 +1713,32 @@ module.exports = deepFreeze({
 });
   };
 
-  // ── server/functions/createInvite/index.js
-  __registry["server/functions/createInvite/index.js"] = function (module, exports, require) {
+  // ── server/functions/acceptInvite/index.js
+  __registry["server/functions/acceptInvite/index.js"] = function (module, exports, require) {
 'use strict';
 
 /**
- * 云函数入口：createInvite（薄壳）
- * 业务逻辑见 server/lib/handlers.js。部署形态见《技术资产》§6（产物 build/cloud-functions/<函数名>.js）。
+ * 云函数入口：acceptInvite（薄壳）
+ * 业务逻辑见 server/lib/handlers.js。部署形态见《技术资产》§6（产物 build/cloud-functions/star-type-api/<函数名>.js）。
  *
- * 已落地(D-1)：store 由 store-provider.js 按环境选择（云库优先，降级内存并告警）。
+ * 已落地(D-1)：store 由 store-provider.js 按环境选择（云库优先，降级内存并告警）；
+ *   首次接受用条件更新（CAS）落位，避免多实例并发下两人同时占位。
  */
 
 const { createRuntimeStore } = __req('server/lib/store-provider.js');
-const { createInvite } = __req('server/lib/handlers.js');
+const { acceptInvite } = __req('server/lib/handlers.js');
 
 let store = null;
 
 /**
  * 入口签名对齐平台契约（已与线上函数服务核对）：`params` 即 HTTP 请求体本身，
- * 返回值作为 Response Body；调用路径 = 文件名，即 `/createInvite`。
+ * 返回值作为 Response Body；调用路径 = 文件名，即 `/acceptInvite`。
  */
 module.exports = async function main(params, context) {
   if (!store) store = createRuntimeStore(context);
-  return createInvite(params || {}, { store, now: Date.now });
+  return acceptInvite(params || {}, { store, now: Date.now });
 };
   };
 
-  module.exports = __req("server/functions/createInvite/index.js");
+  module.exports = __req("server/functions/acceptInvite/index.js");
 })();

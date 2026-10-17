@@ -5,7 +5,7 @@
  *
  * 本文件只做「事件 → 参数 → handler」的转接，业务逻辑全在 server/lib/handlers.js。
  * 部署形态：抖音云函数服务；产物由 `node tools/gen-cloud-functions.js` 打包为自包含单文件
- * （build/cloud-functions/computeResult.js）后覆盖云端同名平铺文件，调用路径即文件名。
+ * （build/cloud-functions/star-type-api/computeResult.js）后覆盖云端同名平铺文件，调用路径即文件名。
  *
  * 已落地(D-1)：store 由 store-provider.js 按环境选择 —— 云库优先，不可用降级内存并**显式告警**
  *   （云函数为多实例，内存实现不保证跨实例可见，**不适用于生产**）。

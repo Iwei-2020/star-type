@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * 抖音云函数服务部署产物单测（build/cloud-functions/，由 tools/gen-cloud-functions.js 生成）
+ * 抖音云函数服务部署产物单测（build/cloud-functions/star-type-api/，由 tools/gen-cloud-functions.js 生成）
  *
  * 断言口径：① 6 个函数名与客户端路径约定一致，产物自包含（无相对 require 残留）；
  * ② 打包产物可直接按平台契约调用（`params` 即请求体），信封与错误码与源码一致。
@@ -13,7 +13,7 @@ const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const OUT_DIR = path.resolve(__dirname, '../build/cloud-functions');
+const OUT_DIR = path.resolve(__dirname, '../build/cloud-functions/star-type-api');
 
 /** 函数名清单：与 miniapp/core/cloud.js 的 pathOf 约定、云端平铺文件名三方一致。 */
 const FUNCTIONS = [

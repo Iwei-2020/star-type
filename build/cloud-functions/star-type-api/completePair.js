@@ -1719,7 +1719,7 @@ module.exports = deepFreeze({
 
 /**
  * 云函数入口：completePair（薄壳）
- * 业务逻辑见 server/lib/handlers.js。部署形态见《技术资产》§6（产物 build/cloud-functions/<函数名>.js）。
+ * 业务逻辑见 server/lib/handlers.js。部署形态见《技术资产》§6（产物 build/cloud-functions/star-type-api/<函数名>.js）。
  *
  * 注意：本接口入参**不含答案**，只读双方已落库的 archetype_code，
  * 因此不构成第二计分入口（《技术资产》§1.2 单一权威实现）。

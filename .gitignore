@@ -2,7 +2,7 @@
 .DS_Store
 
 # 依赖：小程序包内零依赖；仓库根仅有构建期 devDependency（@resvg/resvg-js 预栅格化 SVG 美术资源）。
-# 服务端的唯一运行时依赖 @open-dy/node-server-sdk 只在 build/cloud-functions/package.json 声明，
+# 服务端的唯一运行时依赖 @open-dy/node-server-sdk 只在 build/cloud-functions/star-type-api/package.json 声明，
 # 由平台在部署时安装（不进小程序包，也不在仓库根安装 node_modules）。
 node_modules/
 npm-debug.log*

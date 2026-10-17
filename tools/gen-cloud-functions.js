@@ -13,8 +13,13 @@
  * 且不需要在云端维护第二份目录结构（避免两处代码漂移）。
  *
  * 用法：
- *   node tools/gen-cloud-functions.js          生成 build/cloud-functions/
+ *   node tools/gen-cloud-functions.js          生成 build/cloud-functions/<服务名>/
  *   node tools/gen-cloud-functions.js --check  仅校验产物与源一致（纳入 npm run verify）
+ *
+ * 产物目录名 = 抖音云函数服务名（见 SERVICE_NAME）。原因：`dycloud function:deploy` 强校验
+ * 「--dir 指向目录的 basename 必须等于函数服务名」，否则报 DIR_DIFFERENT_ERROR；且该布局与
+ * `dycloud function:pull --dir build/cloud-functions` 的落盘约定 `<dir>/<服务名>/` 完全对称，
+ * 部署与拉取共用同一目录，无需人工改名或拷贝。
  */
 
 const fs = require('fs');
@@ -32,7 +37,12 @@ const SHARED_FILES = ['shared/constants.js'];
  * 升级此依赖时同步更新此处版本号。
  */
 const CLOUD_SDK_DEP = { '@open-dy/node-server-sdk': '^1.2.2' };
-const OUT_DIR = path.join(ROOT, 'build/cloud-functions');
+/**
+ * 抖音云函数服务名（= 云端控制台/`dycloud function:list` 中的「函数服务名称」）。
+ * 产物目录必须以该名结尾，供 `dycloud function:deploy --dir build/cloud-functions/<服务名>` 使用。
+ */
+const SERVICE_NAME = 'star-type-api';
+const OUT_DIR = path.join(ROOT, 'build/cloud-functions', SERVICE_NAME);
 const CHECK_ONLY = process.argv.includes('--check');
 
 /** 仓库根相对路径，统一用 `/` 分隔，保证产物在任何平台都可复现。 */
@@ -185,7 +195,10 @@ function main() {
     `[gen-cloud-functions] 已生成 ${products.length} 个产物 → ${rel(OUT_DIR)}（合计 ${(bytes / 1024).toFixed(1)} KB）`
   );
   console.log(`  函数清单：${entries.map((entry) => `/${entry.name}`).join('、')}`);
-  console.log('  上传：云端函数服务用同名平铺文件覆盖（或用 CLI `dycloud function:deploy`）。');
+  console.log(
+    `  部署：dycloud function:deploy --dir ${rel(OUT_DIR)} --service-name ${SERVICE_NAME} -n "<发布备注>"` +
+      '（--dir 目录名须等于服务名；覆盖线上草稿加 --coverOnlineDraft --draftSaveNote "<草稿名>"）。'
+  );
 }
 
 main();
